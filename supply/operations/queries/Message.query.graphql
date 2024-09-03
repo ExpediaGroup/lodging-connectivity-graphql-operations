@@ -1,0 +1,5 @@
+query Message($messageId: ID!) {
+    message(id: $messageId) {
+        type
+    }
+}

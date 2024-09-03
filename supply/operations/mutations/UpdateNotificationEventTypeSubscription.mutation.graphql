@@ -1,0 +1,8 @@
+mutation UpdateNotificationEventTypeSubscription($input: UpdateNotificationEventTypeSubscriptionInput!) {
+    updateNotificationEventTypeSubscription(input: $input) {
+        eventType
+        callbackConfig {
+            ...NotificationCallbackConfigFragment
+        }
+    }
+}
