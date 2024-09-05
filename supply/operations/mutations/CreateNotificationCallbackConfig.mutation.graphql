@@ -1,0 +1,8 @@
+mutation CreateNotificationCallbackConfig($input: CreateNotificationCallbackConfigInput!) {
+    createNotificationCallbackConfig(input: $input) {
+        secret
+        callbackConfig {
+            ...NotificationCallbackConfigFragment
+        }
+    }
+}

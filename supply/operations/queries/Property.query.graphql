@@ -1,0 +1,26 @@
+query Property(
+    $propertyId: String!,
+    $idSource: IdSource = EXPEDIA,
+    $checkOutDate: CheckOutDateFilter,
+    $filter: ReservationFilterInput,
+    $pageSize: Int!,
+    $after: String
+) {
+    property(id: $propertyId, idSource: $idSource) {
+        id
+        name
+        reservations(pageSize: $pageSize, checkOutDate: $checkOutDate, filter: $filter, after: $after) {
+            totalCount
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            edges {
+                cursor
+                node {
+                    ...ReservationFragment
+                }
+            }
+        }
+    }
+}
