@@ -1,6 +1,0 @@
-fragment NotificationCallbackConfigFragment on NotificationCallbackConfig {
-    id
-    callbackUrl
-    secretExpirationDateTime
-    requestTimeoutSeconds
-}

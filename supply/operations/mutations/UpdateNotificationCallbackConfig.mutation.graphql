@@ -1,7 +1,0 @@
-mutation UpdateNotificationCallbackConfig($input: UpdateNotificationCallbackConfigInput!) {
-    updateNotificationCallbackConfig(input: $input) {
-        callbackConfig {
-            ...NotificationCallbackConfigFragment
-        }
-    }
-}
