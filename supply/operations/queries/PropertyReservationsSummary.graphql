@@ -44,9 +44,6 @@ query PropertyReservationsSummary(
                     paymentInstructions
                     businessModel
                     supplierOperatingModel
-                    alternativeIds {
-                        supplierId
-                    }
                     audit {
                         creationDateTimeUtc
                         lastUpdateDateTimeUtc
@@ -80,10 +77,6 @@ query PropertyReservationsSummary(
                                 }
                             }
                         }
-                    }
-                    distribution {
-                        distributionChannel
-                        reservationSource
                     }
                     guests {
                         adultCount

@@ -46,9 +46,6 @@ query PropertyReservations(
                     paymentInstructions
                     businessModel
                     supplierOperatingModel
-                    alternativeIds {
-                        supplierId
-                    }
                     amounts {
                         summary {
                             description
@@ -123,10 +120,6 @@ query PropertyReservations(
                                 }
                             }
                         }
-                    }
-                    distribution {
-                        distributionChannel
-                        reservationSource
                     }
                     guests {
                         adultCount
