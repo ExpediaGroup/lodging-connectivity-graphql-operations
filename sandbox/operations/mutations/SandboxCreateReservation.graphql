@@ -2,7 +2,7 @@ mutation SandboxCreateReservation(
     $propertyId: ID!,
     $checkInDate: Date,
     $checkOutDate: Date,
-    $primaryGuest: GuestInput,
+    $primaryGuest: PrimaryGuestInput,
     $status: ReservationStatusInput,
     $accessibilityText: [String!],
     $adultCount: Int,
