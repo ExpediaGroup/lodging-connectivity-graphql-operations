@@ -1,0 +1,5 @@
+mutation SandboxDeleteReservation($id: ID!, $clientMutationId: String) {
+    deleteReservation(input: { id: $id, clientMutationId: $clientMutationId }) {
+        clientMutationId
+    }
+}

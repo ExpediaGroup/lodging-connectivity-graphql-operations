@@ -1,0 +1,30 @@
+mutation SandboxUpdateReservation(
+    $id: ID!,
+    $checkInDate: Date,
+    $checkOutDate: Date,
+    $status: ReservationStatusInput,
+    $adultCount: Int,
+    $childCount: Int,
+    $childAges: [Int!],
+    $sendNotification: Boolean,
+    $specialRequest: String,
+    $clientMutationId: String
+) {
+    updateReservation(input: {
+        id: $id,
+        checkInDate: $checkInDate,
+        checkOutDate: $checkOutDate,
+        status: $status,
+        adultCount: $adultCount,
+        childCount: $childCount,
+        childAges: $childAges,
+        sendNotification: $sendNotification,
+        specialRequest: $specialRequest,
+        clientMutationId: $clientMutationId
+    }) {
+        clientMutationId
+        reservation {
+            ...SandboxReservationFragment
+        }
+    }
+}

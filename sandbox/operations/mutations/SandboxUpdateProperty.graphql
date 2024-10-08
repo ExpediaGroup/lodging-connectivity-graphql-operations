@@ -1,0 +1,9 @@
+mutation SandboxUpdateProperty($id: ID!, $name: String, $clientMutationId: String) {
+    updateProperty(input: { id: $id, name: $name, clientMutationId: $clientMutationId }) {
+        clientMutationId
+        property {
+            id
+            name
+        }
+    }
+}

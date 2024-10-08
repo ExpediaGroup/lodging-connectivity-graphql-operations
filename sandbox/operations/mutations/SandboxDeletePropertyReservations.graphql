@@ -1,0 +1,5 @@
+mutation SandboxDeletePropertyReservations($propertyId: ID!, $clientMutationId: String) {
+    deletePropertyReservations(input: { propertyId: $propertyId, clientMutationId: $clientMutationId }) {
+        clientMutationId
+    }
+}
