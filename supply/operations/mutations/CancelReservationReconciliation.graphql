@@ -1,5 +1,17 @@
-mutation CancelReservationReconciliation($input: CancelReservationReconciliationInput!) {
-    cancelReservationReconciliation(input: $input) {
+mutation CancelReservationReconciliation(
+    $propertyId: ID!,
+    $reservationId: ID!,
+    $reason: ReservationCancellationReason!,
+    $currencyCode: String,
+    $penaltyAmount: Float
+) {
+    cancelReservationReconciliation(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        reason: $reason,
+        currencyCode: $currencyCode,
+        penaltyAmount: $penaltyAmount
+    }) {
         reservation {
             id
         }

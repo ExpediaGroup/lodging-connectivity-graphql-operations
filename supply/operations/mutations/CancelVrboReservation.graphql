@@ -1,6 +1,19 @@
-mutation CancelVrboReservation($input: CancelVrboReservationInput!) {
-    cancelVrboReservation(input: $input) {
-        clientMutationId
+mutation CancelVrboReservation(
+    $propertyId: ID!,
+    $reservationId: ID!,
+    $primaryReason: VrboCancellationReason!,
+    $secondaryReason: VrboCancellationSecondaryReason,
+    $clientMutationId: String,
+    $cancellationPolicyOverride: VrboCancellationPolicyOverride
+) {
+    cancelVrboReservation(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        primaryReason: $primaryReason,
+        secondaryReason: $secondaryReason,
+        clientMutationId: $clientMutationId,
+        cancellationPolicyOverride: $cancellationPolicyOverride
+    }) {
         reservation {
             id
         }

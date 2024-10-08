@@ -1,5 +1,13 @@
-mutation CancelReservation($input: CancelReservationInput!) {
-    cancelReservation(input: $input) {
+mutation CancelReservation(
+    $propertyId: ID!
+    $reservationId: ID!,
+    $reason: ReservationPreStayCancellationReason!
+) {
+    cancelReservation(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        reason: $reason
+    }) {
         reservation {
             id
         }
