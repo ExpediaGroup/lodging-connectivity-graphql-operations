@@ -1,6 +1,6 @@
 mutation SandboxCancelReservation(
     $id: ID!,
-    $sendNotification: Boolean!,
+    $sendNotification: Boolean,
     $clientMutationId: String
 ) {
     cancelReservation(input: {
