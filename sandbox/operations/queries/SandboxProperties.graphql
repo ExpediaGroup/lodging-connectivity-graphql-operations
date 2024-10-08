@@ -13,7 +13,7 @@ query SandboxProperties(
                 totalCount
                 cursor
                 elements {
-                   ...SandboxReservationFragment
+                   ...SandboxReservationData
                 }
             }
         }

@@ -2,7 +2,10 @@ mutation RefundReservation(
     $propertyId: ID!,
     $reservationId: ID!,
     $reason: ReservationRefundReason!,
-    $refund: MoneyInput!
+    $refund: MoneyInput!,
+    $skipReservation: Boolean! = false,
+    $includePaymentInstrumentToken: Boolean! =  false,
+    $includeSupplierAmount: Boolean! = false
 ) {
     refundReservation(input: {
         propertyId: $propertyId,
@@ -10,8 +13,8 @@ mutation RefundReservation(
         reason: $reason,
         refund: $refund
     }) {
-        reservation {
-            id
+        reservation @skip(if: $skipReservation) {
+            ...ReservationData
         }
     }
 }

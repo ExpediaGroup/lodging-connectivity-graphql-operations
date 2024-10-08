@@ -10,7 +10,7 @@ mutation SandboxCancelReservation(
     }) {
         clientMutationId
         reservation {
-            ...SandboxReservationFragment
+            ...SandboxReservationData
         }
     }
 }
