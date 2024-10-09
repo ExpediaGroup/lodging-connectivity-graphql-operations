@@ -1,0 +1,49 @@
+mutation SandboxCreateReservation(
+    $propertyId: ID!,
+    $checkInDate: Date,
+    $checkOutDate: Date,
+    $primaryGuest: GuestInput,
+    $status: ReservationStatusInput,
+    $accessibilityText: [String!],
+    $adultCount: Int,
+    $bedTypes: String,
+    $businessModel: BusinessModelInput,
+    $childAges: [Int!],
+    $childCount: Int,
+    $clientMutationId: String,
+    $multiRoomText: String,
+    $paymentInstrumentType: PaymentInstrumentTypeInput,
+    $reconciliationType: ReconciliationTypeInput,
+    $remittanceType: RemittanceTypeInput,
+    $sendNotification: Boolean,
+    $smokingType: String,
+    $specialRequest: String,
+    $valueAddedPromotions: [ReservationValueAddedPromotionInput!]
+) {
+    createReservation(input: {
+        propertyId: $propertyId,
+        checkInDate: $checkInDate,
+        checkOutDate: $checkOutDate,
+        primaryGuest: $primaryGuest,
+        status: $status,
+        accessibilityText: $accessibilityText,
+        adultCount: $adultCount,
+        bedTypes: $bedTypes,
+        businessModel: $businessModel,
+        childAges: $childAges,
+        childCount: $childCount,
+        clientMutationId: $clientMutationId,
+        multiRoomText: $multiRoomText,
+        paymentInstrumentType: $paymentInstrumentType,
+        reconciliationType: $reconciliationType,
+        remittanceType: $remittanceType,
+        sendNotification: $sendNotification,
+        smokingType: $smokingType,
+        specialRequest: $specialRequest,
+        valueAddedPromotions: $valueAddedPromotions
+    }) {
+        reservation {
+            ...SandboxReservationFragment
+        }
+    }
+}

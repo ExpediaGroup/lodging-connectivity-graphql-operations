@@ -1,0 +1,20 @@
+mutation SandboxChangeReservationStayDates(
+    $id: ID!,
+    $checkInDate: Date!,
+    $checkOutDate: Date!,
+    $sendNotification: Boolean,
+    $clientMutationId: String
+) {
+    changeReservationStayDates(input: {
+        id: $id,
+        checkInDate: $checkInDate,
+        checkOutDate: $checkOutDate,
+        sendNotification: $sendNotification,
+        clientMutationId: $clientMutationId
+    }) {
+        clientMutationId
+        reservation {
+            ...SandboxReservationFragment
+        }
+    }
+}

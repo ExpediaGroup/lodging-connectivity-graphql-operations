@@ -1,5 +1,21 @@
-mutation ConfirmReservationNotification($input: ConfirmReservationNotificationInput!) {
-    confirmReservationNotification(input: $input) {
-        clientMutationId
+mutation ConfirmReservationNotification(
+    $propertyId: ID!,
+    $reservationId: ID!,
+    $confirmationToken: String!,
+    $actionType: String!,
+    $confirmationCode: String!,
+    $clientMutationId: String
+) {
+    confirmReservationNotification(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        confirmationToken: $confirmationToken,
+        confirmationCode: $confirmationCode,
+        actionType: $actionType,
+        clientMutationId: $clientMutationId
+    }) {
+        reservation {
+            id
+        }
     }
 }

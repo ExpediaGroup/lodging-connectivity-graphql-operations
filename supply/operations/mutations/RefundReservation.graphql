@@ -1,5 +1,15 @@
-mutation RefundReservation($input: RefundReservationInput!) {
-    refundReservation(input: $input) {
+mutation RefundReservation(
+    $propertyId: ID!,
+    $reservationId: ID!,
+    $reason: ReservationRefundReason!,
+    $refund: MoneyInput!
+) {
+    refundReservation(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        reason: $reason,
+        refund: $refund
+    }) {
         reservation {
             id
         }

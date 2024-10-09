@@ -1,5 +1,19 @@
-mutation ChangeReservationReconciliation($input: ChangeReservationReconciliationInput!) {
-    changeReservationReconciliation(input: $input) {
+mutation ChangeReservationReconciliation(
+    $propertyId: ID!,
+    $reservationId: ID!,
+    $checkInDate: LocalDate!,
+    $checkOutDate: LocalDate!,
+    $reason: ReservationChangeReason,
+    $supplierAmount: SupplierAmountInput
+) {
+    changeReservationReconciliation(input: {
+        propertyId: $propertyId,
+        reservationId: $reservationId,
+        checkInDate: $checkInDate,
+        checkOutDate: $checkOutDate,
+        reason: $reason,
+        supplierAmount: $supplierAmount
+    }) {
         reservation {
             id
         }
