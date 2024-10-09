@@ -43,10 +43,14 @@ type ChangeReservationStayDatesPayload {
     reservation: Reservation!
 }
 
-type CreateDatasetPayload {
-    clientMutationId: String
-    propertyId: String!
-    result: [String!]!
+"Response payload for the chargeExpediaVirtualCard mutation."
+type ChargeExpediaVirtualCardPayload {
+    "Available balance."
+    availableBalance: PaymentMoney!
+    "Card status."
+    cardStatus: String!
+    "Charged amount."
+    chargedAmount: PaymentMoney!
 }
 
 "Response payload to the createProperty mutation."
@@ -63,6 +67,16 @@ type CreateReservationPayload {
     clientMutationId: String
     "The reservation that was created."
     reservation: Reservation!
+}
+
+"Response payload for the deactivateExpediaVirtualCard mutation."
+type DeactivateExpediaVirtualCardPayload {
+    "Card status."
+    cardStatus: String!
+    "error message"
+    message: String!
+    "success message"
+    success: Boolean!
 }
 
 "Response payload to the deleteProperty mutation."
@@ -143,6 +157,7 @@ type Mutation {
     The mutation returns the updated reservation details.
     """
     changeReservationStayDates(input: ChangeReservationStayDatesInput!): ChangeReservationStayDatesPayload!
+    chargeExpediaVirtualCard(input: ChargeExpediaVirtualCardInput!, paymentInstrumentToken: String!): ChargeExpediaVirtualCardPayload!
     """
     Creates a property in the sandbox environment.
 
@@ -161,6 +176,7 @@ type Mutation {
     reservation via the sendNotification field.
     """
     createReservation(input: CreateReservationInput!): CreateReservationPayload!
+    deactivateExpediaVirtualCard(paymentInstrumentToken: String!): DeactivateExpediaVirtualCardPayload!
     "Deletes a property in the sandbox environment."
     deleteProperty(input: DeletePropertyInput!): DeletePropertyPayload!
     """
@@ -179,11 +195,35 @@ type Mutation {
     This operation is irreversible and will permanently delete the reservation.
     """
     deleteReservation(input: DeleteReservationInput!): DeleteReservationPayload!
+    "Remove VRBO lodging rate content for a property."
+    removePropertyVrboLodgingRateContent(input: RemovePropertyVrboLodgingRateContentInput!): RemovePropertyVrboLodgingRateContentPayload!
+    "Save VRBO lodging rate content for a property."
+    savePropertyVrboLodgingRateContent(input: SavePropertyVrboLodgingRateContentInput!): SavePropertyVrboLodgingRateContentPayload!
     """
-    Creates test data for a given capability and scenario.
-    The mutation is currently setup to setup reservation specific test data but this can be extended to other capabilities.
+    Creates a setupTestData in the sandbox environment.
+    The mutation accepts propertyId , capability and scenario in input  and
+    all the parameteres are optional.
+    If not specified, these parameters will default to logical test data.
+    the setup data will create property with necesary details based on the test case scenario
     """
-    setupTestData(input: SetupTestDataInput!): CreateDatasetPayload!
+    setupTestData(input: SetupTestDataInput!): SetUpTestDataResponse!
+    """
+    Simulates reservation fulfillment flow for Vrbo properties.
+
+    The mutation accepts the supplier unit id, lodging rate schema version, lodging rate content,check-in date, check-out date, fulfillment scenario, adult count, child count, pet count as input parameters
+    The check-out date must be after the check-in date.
+    The mutation returns the reservation that is created as part of the simulation.
+    """
+    simulateReservationFulfillmentFlow(input: SimulateReservationFulfillmentFlowInput!): SimulateReservationFulfillmentFlowPayload!
+    """
+    Checks the availability of Vrbo property for the given input parameters.
+
+    The mutation accepts the supplier unit id, property id, check-in date, check-out date,
+    adult count, child count, and pet count  as parameters.
+    The check-out date must be after the check-in date.
+    The mutation returns payload with a boolean value which tells the availability of the property.
+    """
+    triggerAvailabilityCheck(input: TriggerAvailabilityCheckInput!): TriggerAvailabilityCheckPayload!
     """
     Updates a property in the sandbox environment.
 
@@ -215,6 +255,14 @@ type Payment {
     verificationNumber: String
 }
 
+"Represents a monetary amount value along with its currency."
+type PaymentMoney {
+    "The actual monetary amount value."
+    amount: Float!
+    "The code of the currency of the amount."
+    currency: String!
+}
+
 "Response object for property query."
 type PropertiesResponse {
     "Cursor for pagination."
@@ -244,6 +292,18 @@ type Property {
     starting from the reservation after the cursor.
     """
     reservations(cursor: String, limit: Int): ReservationsResponse!
+    "The supplier unit Id of the property."
+    supplierUnitId: String
+    "Vrbo Lodging Rate details for this sandbox property."
+    vrboLodgingRateContent: PropertyVrboLodgingRateContent
+}
+
+"Vrbo lodging rate content for a property."
+type PropertyVrboLodgingRateContent {
+    "The lodging rate content."
+    lodgingRatingContent: String!
+    "The schema version of the lodging rate content."
+    schemaVersion: String!
 }
 
 type Query {
@@ -264,6 +324,24 @@ type Query {
     property(id: ID!): Property!
     "Retrieve information about a single sandbox reservation by its unique identifier."
     reservation(id: ID!): Reservation!
+    """
+    Reservation details for this sandbox property.
+
+    This query uses pagination to manage the amount of data returned in each request. By default, it returns 25 results at a time.
+
+    To control the number of results returned, you can use the limit input field. If you want to fetch more or less than 25 results,
+    you can set the limit to the desired number.
+
+    To fetch all results, you need to use the cursor input field. For the first request, you can leave the cursor as null.
+    For subsequent requests, set the cursor to the value from the previous response. This will return the next set of results
+    starting from the reservation after the cursor.
+    """
+    reservations(cursor: String, id: ID!, limit: Int): ReservationsResponse!
+}
+
+"Response object for removing VRBO property Lodging Rate Content."
+type RemovePropertyVrboLodgingRateContentPayload {
+    clientMutationId: String
 }
 
 "Reservation details."
@@ -290,7 +368,11 @@ type Reservation {
     childCount: Int!
     "Date/time when the reservation was created (format: yyyy-MM-dd'T'HH:mm:ss.SSSX, will always be in UTC timezone)."
     creationDateTime: String!
-    "Unique identifier for the reservation."
+    """
+    Expedia id of the reservation
+    Core OTA reservations are represented as numeric value
+    VRBO reservations are represented as UUID
+    """
     id: ID!
     "Whether the reservation has been reconciled or not."
     isReconciled: Boolean!
@@ -310,6 +392,8 @@ type Reservation {
     rateIds: [IdNode!]
     "Type of reconciliation that has been performed on the reservation, if any."
     reconciliationType: ReconciliationType
+    "Remittance type of the reservation. Defaults to null."
+    remittanceType: RemittanceType
     "Unique identifiers for the reservation, each corresponding to a different source associated with the reservation."
     reservationIds: [IdNode!]!
     "Whether smoking is allowed for the reservation."
@@ -322,6 +406,8 @@ type Reservation {
     status: ReservationStatus!
     "Current substatus of the reservation. Applicable for Vrbo reservations only."
     subStatus: String
+    "Supplier operating model."
+    supplierOperatingModel: SupplierOperatingModelType
     "Travel Industry Designator Service (TIDS) code that allows a reservation to be recognized by industry suppliers."
     tidsCode: Int
     "Total number of guests associated with the reservation."
@@ -396,12 +482,42 @@ type ReservationsResponse {
     totalCount: Int!
 }
 
+"Response payload to the savePropertyVrboLodgingRateContent mutation."
+type SavePropertyVrboLodgingRateContentPayload {
+    clientMutationId: String
+    vrboLodgingRateContent: PropertyVrboLodgingRateContent!
+}
+
+"Create Data Set Payload"
+type SetUpTestDataResponse {
+    propertyId: String!
+    resultList: [String!]!
+}
+
+"Response payload to simulateReservationFulfillmentFlow mutation."
+type SimulateReservationFulfillmentFlowPayload {
+    "Client mutation ID. Optional value in the input that is echoed back in the response."
+    clientMutationId: String
+    "The reservation fulfillment result."
+    fulfillmentResult: ReservationFulfillmentResult!
+    "The reservation that is created as part of simulation."
+    reservation: Reservation!
+}
+
 "Details about the frequent traveler reward program."
 type SupplierLoyaltyPlanInfo {
     "Traveler's membership number."
     membershipNumber: Int!
     "Reward program code."
     planCode: String!
+}
+
+"Response payload to triggerAvailabilityCheck mutation"
+type TriggerAvailabilityCheckPayload {
+    "Availability status of the property. True if available, false otherwise."
+    available: Boolean!
+    "Client mutation ID. Optional value in the input that is echoed back in the response."
+    clientMutationId: String
 }
 
 "Response payload to the updateProperty mutation."
@@ -491,6 +607,14 @@ enum ReconciliationTypeInput {
 }
 
 "Remittance type of the reservation."
+enum RemittanceType {
+    "Gross remittance type."
+    GROSS
+    "Net remittance type."
+    NET
+}
+
+"Remittance type of the reservation."
 enum RemittanceTypeInput {
     "Gross remittance type."
     GROSS
@@ -498,12 +622,43 @@ enum RemittanceTypeInput {
     NET
 }
 
+"The result of the reservation fulfillment flow."
+enum ReservationFulfillmentResult {
+    "Failure result."
+    FAILURE
+    "Success result."
+    SUCCESS
+}
+
+"Reservation fulfillment scenario."
+enum ReservationFulfillmentScenario {
+    "Hold and Commit steps will be assumed successful without actually calling the partner endpoints"
+    ASSUME_HOLD_COMMIT_SUCCESS
+    "Hold and Commit steps will be executed for the configured partner endpoints"
+    HOLD_COMMIT
+    "Hold and Rollback steps will be executed for the configured partner endpoints"
+    HOLD_ROLLBACK
+}
+
 "Current status of the reservation."
 enum ReservationStatus {
-    "Reservation is booked."
+    """
+    Core OTA - Reservation is confirmed
+    VRBO - Reservation is fulfilled (COMMIT)
+    """
     BOOKED
     "Reservation is cancelled."
     CANCELLED
+    """
+    VRBO - Reservation fulfillment step (HOLD, COMMIT or ROLLBACK) fails
+    Core OTA - Status not applicable
+    """
+    INVALID
+    """
+    VRBO - Reservation is created, HOLD is successful, awaiting fulfillment
+    Core OTA - Status not applicable
+    """
+    IN_PROGRESS
 }
 
 "Status of the reservation."
@@ -514,14 +669,59 @@ enum ReservationStatusInput {
     CANCELLED
 }
 
-enum TestDataCapability {
-    RESERVATION_CORE_OTA
+"The fulfillment scenario to simulate."
+enum SimulateReservationFulfillmentFlowScenario {
+    "Performs only COMMIT operation in the simulation process."
+    COMMIT
+    "Performs only HOLD operation in the simulation process."
+    HOLD
+    "Performs HOLD and COMMIT operations in the simulation process."
+    HOLD_COMMIT
+    "Performs HOLD and ROLLBACK operations in the simulation process."
+    HOLD_ROLLBACK
+    "Performs only ROLLBACK operation in the simulation process."
+    ROLLBACK
 }
 
-enum TestDataScenario {
+enum SupplierOperatingModelInput {
+    "Supplier operates on an agency model."
+    AGENCY
+    "Supplier operates on a merchant model."
+    MERCHANT
+}
+
+"Type of Supplier Operating Model that has been performed on the reservation."
+enum SupplierOperatingModelType {
+    "Supplier operates on an agency model."
+    AGENCY
+    "Supplier operates on a merchant model."
+    MERCHANT
+}
+
+"Remitting Party of the tax."
+enum TaxRuleRemittingParty {
+    "Expedia remits the tax."
+    EXPEDIA
+    "Supplier remits the tax."
+    SUPPLIER
+}
+
+"Test data capability enumeration"
+enum TestDataCapabilityInput {
+    "Reservation core OTA capability"
+    TEST_DATA_CAPABILITY_RESERVATION_CORE_OTA
+}
+
+"Test data scenario enumeration"
+enum TestDataScenarioInput {
+    "Step 01: Create and cancel reservation with reconciliation"
     STEP_01_RES_CREATE_AND_CANCEL_RECON
+    "Step 02: Soft and hard modify and create reservation"
     STEP_02_SOFT_HARD_MOD_AND_CREATE_RES
+    "Step 03: Soft and hard modify"
     STEP_03_SOFT_HARD_MOD
+    "Step 04: Create and cancel reservation with reconciliation"
+    TEST_DATA_SCENARIO_UNSPECIFIED
 }
 
 "An RFC-3339 compliant Full Date Scalar"
@@ -551,12 +751,20 @@ input ChangeReservationStayDatesInput {
     sendNotification: Boolean
 }
 
+"Input for the chargeExpediaVirtualCard mutation."
+input ChargeExpediaVirtualCardInput {
+    "Charged amount."
+    chargedAmount: PaymentMoneyInput!
+}
+
 "Input object for creating a property."
 input CreatePropertyInput {
     "Client mutation ID. Optional value that is echoed back in the response."
     clientMutationId: String
     "Optional name for the property."
     name: String
+    "Optional supplier unit ID for the property."
+    supplierUnitId: String
 }
 
 "Input to create a reservation"
@@ -579,26 +787,39 @@ input CreateReservationInput {
     childCount: Int
     "Client mutation ID. Optional value that is echoed back in the response."
     clientMutationId: String
+    """
+    EG Tax Rules to be applied for vrbo booking. If not provided, default tax rules will be applied.
+    CITY and STATE level sales tax are the default ones.
+    """
+    egTaxRules: [EgTaxRuleInput!]
+    "Fulfillment scenario to execute for VRBO reservation. Defaults to ASSUME_HOLD_COMMIT_SUCCESS."
+    fulfillmentScenario: ReservationFulfillmentScenario
     "Text that is displayed to guests if there are multiple rooms associated with the reservation."
     multiRoomText: String
     "Type of payment instrument. Defaults to EXPEDIA_VIRTUAL_CARD in case of EXPEDIA_COLLECT else GUEST_CREDIT_CARD."
     paymentInstrumentType: PaymentInstrumentTypeInput
+    "Number of pets associated with the reservation."
+    petCount: Int
     "Guest who made the reservation. Guest personal information cannot be set and is automatically generated."
-    primaryGuest: GuestInput
+    primaryGuest: PrimaryGuestInput
     "Property id on which to associate the reservation."
     propertyId: ID!
     "Reconciliation type of the reservation, either MODIFY, CANCEL, NO_SHOW, or null. Defaults to non-reconciled (null)."
     reconciliationType: ReconciliationTypeInput
-    "Remittance type of the reservation. Defaults to NET."
+    "Remittance type of the reservation. Defaults to null."
     remittanceType: RemittanceTypeInput
     "Whether to send a notification upon the creation of the reservation. Defaults to false."
     sendNotification: Boolean
     "Whether smoking is allowed for the reservation. Defaults to \"NONSMOKING\"."
     smokingType: String
+    "Source of the reservation booking."
+    source: String
     "Text that is displayed to guests if there is a special request associated with the reservation. Defaults to \"Expedia test reservation. This is a free-text comment from the traveler.\"."
     specialRequest: String
     "Current status of the reservation. Defaults to BOOKED."
     status: ReservationStatusInput
+    "Supplier operating model."
+    supplierOperatingModel: SupplierOperatingModelInput
     "Value add promotion(s) used to book the reservation. Defaults to a single \"Free full breakfast for 2 per day\" value added promotion."
     valueAddedPromotions: [ReservationValueAddedPromotionInput!]
 }
@@ -627,12 +848,46 @@ input DeleteReservationInput {
     id: ID!
 }
 
+"Eg Tax Rule Input"
+input EgTaxRuleInput {
+    " The type of the tax. Eg: Sales tax."
+    impositionTypeName: String!
+    "Tax distribution jurisdiction with fields for level and name."
+    jurisdiction: TaxRuleJurisdictionInput!
+    "Tax amount percentage"
+    percent: Float!
+    "The party that collects the tax."
+    remittingParty: TaxRuleRemittingParty!
+}
+
+"Represents a monetary amount value along with its currency."
+input PaymentMoneyInput {
+    "The actual monetary amount value."
+    amount: Float!
+    "The code of the currency of the amount."
+    currency: String!
+}
+
 "Guest who made the reservation. Guest personal information cannot be set and is automatically generated."
-input GuestInput {
+input PrimaryGuestInput {
     "Loyalty tier of the guest. Defaults to \"MEMBER\"."
     loyaltyTier: String
     "Details about the frequent traveler reward program. Defaults to null."
     supplierLoyaltyPlanInfo: SupplierLoyaltyPlanInfoInput
+}
+
+"Vrbo lodging rate content for a property."
+input PropertyVrboLodgingRateContentInput {
+    "The lodging rate content."
+    lodgingRatingContent: String!
+    "The schema version of the lodging rate content."
+    schemaVersion: String!
+}
+
+"Input object for removing VRBO property Lodging Rate Content."
+input RemovePropertyVrboLodgingRateContentInput {
+    clientMutationId: String
+    propertyId: ID!
 }
 
 "Value added promotion(s) used to book the reservation."
@@ -643,11 +898,42 @@ input ReservationValueAddedPromotionInput {
     id: String!
 }
 
+"Input object for saving VRBO property Lodging Rate Content."
+input SavePropertyVrboLodgingRateContentInput {
+    clientMutationId: String
+    propertyId: ID!
+    vrboLodgingRateContent: PropertyVrboLodgingRateContentInput!
+}
+
+"Setup Test Data for Reservation Mutation Inputs"
 input SetupTestDataInput {
-    capability: TestDataCapability!
-    clientMutationIds: String
+    capability: TestDataCapabilityInput!
     propertyId: String
-    scenario: TestDataScenario!
+    scenario: TestDataScenarioInput!
+}
+
+"Input to simulate reservation fulfillment flow"
+input SimulateReservationFulfillmentFlowInput {
+    "Adult count of the reservation."
+    adultCount: Int!
+    "Check-in date of the reservation."
+    checkInDate: Date!
+    "Check-out date of the reservation."
+    checkOutDate: Date!
+    "Child count of the reservation."
+    childCount: Int!
+    "Client mutation ID. Optional value that is echoed back in the response."
+    clientMutationId: String
+    "Lodging rate xml content to be used for simulating the reservation flow."
+    lodgingRateContentXml: String!
+    "Pet count of the reservation."
+    petCount: Int!
+    "Schema version of the lodging rate xml content."
+    schemaVersion: String!
+    "Reservation fulfillment scenario to simulate."
+    simulateReservationFulfillmentFlowScenario: SimulateReservationFulfillmentFlowScenario!
+    "ID of the supplier unit to create reservation for."
+    unitId: String!
 }
 
 "Details about the frequent traveler reward program."
@@ -656,6 +942,34 @@ input SupplierLoyaltyPlanInfoInput {
     membershipNumber: Int!
     "Reward program code."
     planCode: String!
+}
+
+"Tax rule jurisdiction input."
+input TaxRuleJurisdictionInput {
+    "The level of the jurisdiction. Currently supported values: COUNTRY, STATE, COUNTY, CITY, DISTRICT and TERRITORY"
+    level: String!
+    "The name of the jurisdiction."
+    name: String!
+}
+
+"Input to trigger availability check"
+input TriggerAvailabilityCheckInput {
+    "Adult count of the reservation."
+    adultCount: Int!
+    "Check-in date of the reservation."
+    checkInDate: Date!
+    "Check-out date of the reservation."
+    checkOutDate: Date!
+    "Child count of the reservation."
+    childCount: Int!
+    "Client mutation ID. Optional value that is echoed back in the response."
+    clientMutationId: String
+    "Pet count of the reservation."
+    petCount: Int!
+    "ID of the property to check availability for."
+    propertyId: String!
+    "ID of the supplier unit to check availability for."
+    supplierUnitId: String!
 }
 
 "Input object for updating a property."

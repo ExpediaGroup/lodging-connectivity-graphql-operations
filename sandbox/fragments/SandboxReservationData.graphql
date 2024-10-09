@@ -1,4 +1,4 @@
-fragment SandboxReservationFragment on Reservation {
+fragment SandboxReservationData on Reservation {
     accessibilityText
     adultCount
     amounts {

@@ -3,7 +3,10 @@ mutation CancelReservationReconciliation(
     $reservationId: ID!,
     $reason: ReservationCancellationReason!,
     $currencyCode: String,
-    $penaltyAmount: Float
+    $penaltyAmount: Float,
+    $skipReservation: Boolean! = false,
+    $includePaymentInstrumentToken: Boolean! =  false,
+    $includeSupplierAmount: Boolean! = false
 ) {
     cancelReservationReconciliation(input: {
         propertyId: $propertyId,
@@ -12,8 +15,8 @@ mutation CancelReservationReconciliation(
         currencyCode: $currencyCode,
         penaltyAmount: $penaltyAmount
     }) {
-        reservation {
-            id
+        reservation @skip(if: $skipReservation) {
+            ...ReservationData
         }
     }
 }
