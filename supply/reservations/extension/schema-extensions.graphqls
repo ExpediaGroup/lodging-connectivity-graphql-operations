@@ -1,0 +1,86 @@
+extend type Query {
+    reservationsPlaceholder(
+        PropertyReservationsVariables: PropertyReservationsVariables,
+        PropertyReservationsSummaryVariables: PropertyReservationsSummaryVariables,
+        CancelReservationVariables: CancelReservationVariables,
+        CancelReservationReconciliationVariables: CancelReservationReconciliationVariables,
+        CancelVrboReservationVariables: CancelVrboReservationVariables,
+        ChangeReservationReconciliationVariables: ChangeReservationReconciliationVariables,
+        ConfirmReservationNotificationVariables: ConfirmReservationNotificationVariables,
+        RefundReservationVariables: RefundReservationVariables
+    ): Boolean
+}
+
+input PropertyReservationsVariables {
+    propertyId: String!,
+    idSource: IdSource = EXPEDIA,
+    pageSize: Int! = 10,
+    cursor: String,
+    filter: ReservationFilterInput,
+    checkOutDate: CheckOutDateFilter,
+    includePaymentInstrumentToken: Boolean! =  false,
+    includeSupplierAmount: Boolean! = false
+}
+
+input PropertyReservationsSummaryVariables {
+    propertyId: String!,
+    idSource: IdSource = EXPEDIA,
+    pageSize: Int! = 10,
+    cursor: String,
+    filter: ReservationFilterInput,
+    checkOutDate: CheckOutDateFilter
+}
+
+input CancelReservationVariables {
+    propertyId: ID!
+    reservationId: ID!,
+    reason: ReservationPreStayCancellationReason!,
+    skipReservation: Boolean! = false,
+    includePaymentInstrumentToken: Boolean! =  false,
+    includeSupplierAmount: Boolean! = false
+}
+
+input CancelReservationReconciliationVariables {
+    propertyId: ID!,
+    reservationId: ID!,
+    reason: ReservationCancellationReason!,
+    currencyCode: String,
+    penaltyAmount: Float,
+    skipReservation: Boolean! = false,
+    includePaymentInstrumentToken: Boolean! =  false,
+    includeSupplierAmount: Boolean! = false
+}
+
+input CancelVrboReservationVariables {
+    propertyId: ID!
+    reservationId: ID!
+    primaryReason: VrboCancellationReason!
+    secondaryReason: VrboCancellationSecondaryReason
+    cancellationPolicyOverride: VrboCancellationPolicyOverride
+    clientMutationId: String
+}
+
+input ChangeReservationReconciliationVariables {
+    propertyId: ID!
+    reservationId: ID!
+    checkInDate: LocalDate!
+    checkOutDate: LocalDate!
+    reason: ReservationChangeReason
+    supplierAmount: SupplierAmountInput
+}
+
+input ConfirmReservationNotificationVariables {
+    propertyId: ID!
+    reservationId: ID!
+    actionType: String!
+    confirmationToken: String!
+    confirmationCode: String!
+    clientMutationId: String
+}
+
+input RefundReservationVariables {
+    propertyId: ID!
+    reservationId: ID!
+    reason: ReservationRefundReason!
+    refund: MoneyInput!
+}
