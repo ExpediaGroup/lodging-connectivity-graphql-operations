@@ -1,0 +1,15 @@
+query SandboxReservationsPlaceholder(
+    $sandboxPropertiesVariables: SandboxPropertiesVariables,
+    $sandboxPropertyVariables: SandboxPropertyVariables,
+    $sandboxCancelReservationVariables: SandboxCancelReservationVariables,
+    $sandboxChangeReservationStayDatesVariables: SandboxChangeReservationStayDatesVariables,
+    $sandboxCreatePropertyVariables: SandboxCreatePropertyVariables,
+    $sandboxCreateReservationVariables: SandboxCreateReservationVariables,
+    $sandboxDeletePropertyVariables: SandboxDeletePropertyVariables,
+    $sandboxDeletePropertyReservationsVariables: SandboxDeletePropertyReservationsVariables,
+    $sandboxDeleteReservationVariables: SandboxDeleteReservationVariables,
+    $sandboxUpdatePropertyVariables: SandboxUpdatePropertyVariables,
+    $sandboxUpdateReservationVariables: SandboxUpdateReservationVariables
+) {
+    sandboxReservationsPlaceholder
+}
