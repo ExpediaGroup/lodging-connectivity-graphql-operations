@@ -1,13 +1,5 @@
-mutation SandboxCancelReservation(
-    $id: ID!,
-    $sendNotification: Boolean,
-    $clientMutationId: String
-) {
-    cancelReservation(input: {
-        id: $id,
-        sendNotification: $sendNotification,
-        clientMutationId: $clientMutationId
-    }) {
+mutation SandboxCancelReservation($input: CancelReservationInput!) {
+    cancelReservation(input: $input) {
         clientMutationId
         reservation {
             ...SandboxReservationData

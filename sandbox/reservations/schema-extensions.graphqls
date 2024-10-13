@@ -1,0 +1,108 @@
+extend type Query {
+    sandboxReservationsPlaceholder(
+        sandboxPropertiesVariables: SandboxPropertiesVariables,
+        sandboxPropertyVariables: SandboxPropertyVariables,
+        sandboxCancelReservationVariables: SandboxCancelReservationVariables,
+        sandboxChangeReservationStayDatesVariables: SandboxChangeReservationStayDatesVariables,
+        sandboxCreatePropertyVariables: SandboxCreatePropertyVariables,
+        sandboxCreateReservationVariables: SandboxCreateReservationVariables,
+        sandboxDeletePropertyVariables: SandboxDeletePropertyVariables,
+        sandboxDeletePropertyReservationsVariables: SandboxDeletePropertyReservationsVariables,
+        sandboxDeleteReservationVariables: SandboxDeleteReservationVariables,
+        sandboxUpdatePropertyVariables: SandboxUpdatePropertyVariables,
+        sandboxUpdateReservationVariables: SandboxUpdateReservationVariables
+    ): Boolean
+}
+
+input SandboxPropertiesVariables {
+    cursor: String,
+    pageSize: Int,
+    skipReservations: Boolean! = false
+}
+
+input SandboxPropertyVariables {
+    id: ID!,
+    skipReservations: Boolean! = false
+}
+
+input SandboxCancelReservationVariables {
+    id: ID!,
+    sendNotification: Boolean,
+    clientMutationId: String
+}
+
+input SandboxChangeReservationStayDatesVariables {
+    id: ID!,
+    checkInDate: Date!,
+    checkOutDate: Date!,
+    sendNotification: Boolean,
+    clientMutationId: String
+}
+
+input SandboxCreatePropertyVariables {
+    name: String
+    clientMutationId: String
+    supplierUnitId: String
+}
+
+input SandboxCreateReservationVariables {
+    propertyId: ID!
+    accessibilityText: [String!]
+    adultCount: Int
+    bedTypes: String
+    businessModel: BusinessModelInput
+    checkInDate: Date
+    checkOutDate: Date
+    childAges: [Int!]
+    childCount: Int
+    clientMutationId: String
+    egTaxRules: [EgTaxRuleInput!]
+    fulfillmentScenario: ReservationFulfillmentScenario
+    multiRoomText: String
+    paymentInstrumentType: PaymentInstrumentTypeInput
+    petCount: Int
+    primaryGuest: PrimaryGuestInput
+    reconciliationType: ReconciliationTypeInput
+    remittanceType: RemittanceTypeInput
+    sendNotification: Boolean
+    smokingType: String
+    source: String
+    specialRequest: String
+    status: ReservationStatusInput
+    supplierOperatingModel: SupplierOperatingModelInput
+    valueAddedPromotions: [ReservationValueAddedPromotionInput!]
+}
+
+input SandboxDeletePropertyVariables {
+    id: ID!
+    clientMutationId: String
+}
+
+input SandboxDeletePropertyReservationsVariables {
+    propertyId: ID!
+    clientMutationId: String
+}
+
+input SandboxDeleteReservationVariables {
+    id: ID!
+    clientMutationId: String
+}
+
+input SandboxUpdatePropertyVariables {
+    id: ID!
+    name: String
+    clientMutationId: String
+}
+
+input SandboxUpdateReservationVariables {
+    id: ID!
+    adultCount: Int
+    checkInDate: Date
+    checkOutDate: Date
+    childAges: [Int!]
+    childCount: Int
+    clientMutationId: String
+    sendNotification: Boolean
+    specialRequest: String
+    status: ReservationStatusInput
+}
