@@ -1,16 +1,7 @@
 extend type Query {
     sandboxReservationsPlaceholder(
         sandboxPropertiesVariables: SandboxPropertiesVariables,
-        sandboxPropertyVariables: SandboxPropertyVariables,
-        sandboxCancelReservationVariables: SandboxCancelReservationVariables,
-        sandboxChangeReservationStayDatesVariables: SandboxChangeReservationStayDatesVariables,
-        sandboxCreatePropertyVariables: SandboxCreatePropertyVariables,
-        sandboxCreateReservationVariables: SandboxCreateReservationVariables,
-        sandboxDeletePropertyVariables: SandboxDeletePropertyVariables,
-        sandboxDeletePropertyReservationsVariables: SandboxDeletePropertyReservationsVariables,
-        sandboxDeleteReservationVariables: SandboxDeleteReservationVariables,
-        sandboxUpdatePropertyVariables: SandboxUpdatePropertyVariables,
-        sandboxUpdateReservationVariables: SandboxUpdateReservationVariables
+        sandboxPropertyVariables: SandboxPropertyVariables
     ): Boolean
 }
 
@@ -25,84 +16,20 @@ input SandboxPropertyVariables {
     skipReservations: Boolean! = false
 }
 
-input SandboxCancelReservationVariables {
-    id: ID!,
-    sendNotification: Boolean,
-    clientMutationId: String
-}
+extend input CancelReservationInput @targetName(name: "SandboxCancelReservationInput")
 
-input SandboxChangeReservationStayDatesVariables {
-    id: ID!,
-    checkInDate: Date!,
-    checkOutDate: Date!,
-    sendNotification: Boolean,
-    clientMutationId: String
-}
+extend input ChangeReservationStayDatesInput @targetName(name: "SandboxChangeReservationStayDatesInput")
 
-input SandboxCreatePropertyVariables {
-    name: String
-    clientMutationId: String
-    supplierUnitId: String
-}
+extend input CreatePropertyInput @targetName(name: "SandboxCreatePropertyInput")
 
-input SandboxCreateReservationVariables {
-    propertyId: ID!
-    accessibilityText: [String!]
-    adultCount: Int
-    bedTypes: String
-    businessModel: BusinessModelInput
-    checkInDate: Date
-    checkOutDate: Date
-    childAges: [Int!]
-    childCount: Int
-    clientMutationId: String
-    egTaxRules: [EgTaxRuleInput!]
-    fulfillmentScenario: ReservationFulfillmentScenario
-    multiRoomText: String
-    paymentInstrumentType: PaymentInstrumentTypeInput
-    petCount: Int
-    primaryGuest: PrimaryGuestInput
-    reconciliationType: ReconciliationTypeInput
-    remittanceType: RemittanceTypeInput
-    sendNotification: Boolean
-    smokingType: String
-    source: String
-    specialRequest: String
-    status: ReservationStatusInput
-    supplierOperatingModel: SupplierOperatingModelInput
-    valueAddedPromotions: [ReservationValueAddedPromotionInput!]
-}
+extend input CreateReservationInput @targetName(name: "SandboxCreateReservationInput")
 
-input SandboxDeletePropertyVariables {
-    id: ID!
-    clientMutationId: String
-}
+extend input DeletePropertyInput @targetName(name: "SandboxDeletePropertyInput")
 
-input SandboxDeletePropertyReservationsVariables {
-    propertyId: ID!
-    clientMutationId: String
-}
+extend input DeletePropertyReservationsInput @targetName(name: "SandboxDeletePropertyReservationsInput")
 
-input SandboxDeleteReservationVariables {
-    id: ID!
-    clientMutationId: String
-}
+extend input DeleteReservationInput @targetName(name: "SandboxDeleteReservationInput")
 
-input SandboxUpdatePropertyVariables {
-    id: ID!
-    name: String
-    clientMutationId: String
-}
+extend input UpdatePropertyInput @targetName(name: "SandboxUpdatePropertyInput")
 
-input SandboxUpdateReservationVariables {
-    id: ID!
-    adultCount: Int
-    checkInDate: Date
-    checkOutDate: Date
-    childAges: [Int!]
-    childCount: Int
-    clientMutationId: String
-    sendNotification: Boolean
-    specialRequest: String
-    status: ReservationStatusInput
-}
+extend input UpdateReservationInput @targetName(name: "SandboxUpdateReservationInput")
