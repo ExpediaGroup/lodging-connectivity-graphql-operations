@@ -1,6 +1,6 @@
 query SandboxReservationsPlaceholder(
-    $sandboxPropertiesVariables: SandboxPropertiesVariables,
-    $sandboxPropertyVariables: SandboxPropertyVariables
+    $sandboxPropertiesVariables: SandboxPropertiesInput,
+    $sandboxPropertyVariables: SandboxPropertyInput
 ) {
     sandboxReservationsPlaceholder
 }
