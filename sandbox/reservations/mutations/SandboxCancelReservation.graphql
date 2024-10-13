@@ -1,4 +1,4 @@
-mutation SandboxCancelReservation($input: SandboxCancelReservationInput!) {
+mutation SandboxCancelReservation($input: CreateReservationInput!) {
     cancelReservation(input: $input) {
         clientMutationId
         reservation {
