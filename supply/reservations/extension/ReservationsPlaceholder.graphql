@@ -1,12 +1,6 @@
 query ReservationsPlaceholder(
-    $propertyReservationsVariables: PropertyReservationsVariables,
-    $propertyReservationsSummaryVariables: PropertyReservationsSummaryVariables,
-    $cancelReservationVariables: CancelReservationVariables,
-    $cancelReservationReconciliationVariables: CancelReservationReconciliationVariables,
-    $cancelVrboReservationVariables: CancelVrboReservationVariables,
-    $changeReservationReconciliationVariables: ChangeReservationReconciliationVariables,
-    $confirmReservationNotificationVariables: ConfirmReservationNotificationVariables,
-    $refundReservationVariables: RefundReservationVariables
+    $propertyReservationsInput: PropertyReservationsInput,
+    $propertyReservationsSummaryInput: PropertyReservationsSummaryInput
 ) {
     reservationsPlaceholder
 }
