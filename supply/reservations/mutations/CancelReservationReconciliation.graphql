@@ -1,11 +1,10 @@
 mutation CancelReservationReconciliation(
     $input: CancelReservationReconciliationInput!,
-    $skipReservation: Boolean! = false,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
     cancelReservationReconciliation(input: $input) {
-        reservation @skip(if: $skipReservation) {
+        reservation {
             ...ReservationData
         }
     }

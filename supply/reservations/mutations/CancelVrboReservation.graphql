@@ -1,11 +1,10 @@
 mutation CancelVrboReservation(
     $input: CancelVrboReservationInput!,
-    $skipReservation: Boolean! = false,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
     cancelVrboReservation(input: $input) {
-        reservation @skip(if: $skipReservation) {
+        reservation {
             ...ReservationData
         }
     }

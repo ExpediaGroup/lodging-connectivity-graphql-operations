@@ -1,11 +1,10 @@
 mutation RefundReservation(
     $input: RefundReservationInput!,
-    $skipReservation: Boolean! = false,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
     refundReservation(input: $input) {
-        reservation @skip(if: $skipReservation) {
+        reservation {
             ...ReservationData
         }
     }
