@@ -1,6 +1,7 @@
 query ReservationsPlaceholder(
     $propertyReservationsInput: PropertyReservationsInput,
-    $propertyReservationsSummaryInput: PropertyReservationsSummaryInput
+    $propertyReservationsSummaryInput: PropertyReservationsSummaryInput,
+    $reservationSelections: ReservationSelections
 ) {
     reservationsPlaceholder
 }

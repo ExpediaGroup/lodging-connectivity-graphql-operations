@@ -15,21 +15,3 @@ input SandboxPropertyInput {
     id: ID!,
     skipReservations: Boolean! = false
 }
-
-extend input CancelReservationInput @targetName(name: "SandboxCancelReservationInput")
-
-extend input ChangeReservationStayDatesInput @targetName(name: "SandboxChangeReservationStayDatesInput")
-
-extend input CreatePropertyInput @targetName(name: "SandboxCreatePropertyInput")
-
-extend input CreateReservationInput @targetName(name: "SandboxCreateReservationInput")
-
-extend input DeletePropertyInput @targetName(name: "SandboxDeletePropertyInput")
-
-extend input DeletePropertyReservationsInput @targetName(name: "SandboxDeletePropertyReservationsInput")
-
-extend input DeleteReservationInput @targetName(name: "SandboxDeleteReservationInput")
-
-extend input UpdatePropertyInput @targetName(name: "SandboxUpdatePropertyInput")
-
-extend input UpdateReservationInput @targetName(name: "SandboxUpdateReservationInput")

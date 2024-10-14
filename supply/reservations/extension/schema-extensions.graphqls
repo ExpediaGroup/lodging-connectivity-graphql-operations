@@ -1,8 +1,14 @@
 extend type Query {
     reservationsPlaceholder(
-        PropertyReservationsVariables: PropertyReservationsInput,
-        PropertyReservationsSummaryVariables: PropertyReservationsSummaryInput
+        propertyReservationsVariables: PropertyReservationsInput,
+        propertyReservationsSummaryVariables: PropertyReservationsSummaryInput,
+        reservationSelection: ReservationSelections
     ): Boolean
+}
+
+input ReservationSelections {
+    includePaymentInstrumentToken: Boolean! =  false,
+    includeSupplierAmount: Boolean! = false
 }
 
 input PropertyReservationsInput {
@@ -21,34 +27,4 @@ input PropertyReservationsSummaryInput {
     cursor: String,
     filter: ReservationFilterInput,
     checkOutDate: CheckOutDateFilter
-}
-
-extend input PropertyReservationsInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
-}
-
-extend input CancelReservationInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
-}
-
-extend input CancelReservationReconciliationInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
-}
-
-extend input ChangeReservationReconciliationInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
-}
-
-extend input ConfirmReservationNotificationInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
-}
-
-extend input RefundReservationInput {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
 }
