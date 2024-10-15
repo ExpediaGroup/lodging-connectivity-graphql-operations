@@ -1,5 +1,5 @@
-mutation SandboxCreateProperty($name: String, $clientMutationId: String) {
-    createProperty(input: { name: $name, clientMutationId: $clientMutationId }) {
+mutation SandboxCreateProperty($input: CreatePropertyInput!) {
+    createProperty(input: $input) {
         clientMutationId
         property {
             id

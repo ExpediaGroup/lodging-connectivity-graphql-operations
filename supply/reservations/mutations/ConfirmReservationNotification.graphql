@@ -1,23 +1,10 @@
 mutation ConfirmReservationNotification(
-    $propertyId: ID!,
-    $reservationId: ID!,
-    $confirmationToken: String!,
-    $actionType: String!,
-    $confirmationCode: String!,
-    $clientMutationId: String,
-    $skipReservation: Boolean! = false,
+    $input: ConfirmReservationNotificationInput!,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
-    confirmReservationNotification(input: {
-        propertyId: $propertyId,
-        reservationId: $reservationId,
-        confirmationToken: $confirmationToken,
-        confirmationCode: $confirmationCode,
-        actionType: $actionType,
-        clientMutationId: $clientMutationId
-    }) {
-        reservation @skip(if: $skipReservation) {
+    confirmReservationNotification(input: $input) {
+        reservation {
             ...ReservationData
         }
     }

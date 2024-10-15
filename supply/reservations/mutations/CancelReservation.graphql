@@ -1,17 +1,10 @@
 mutation CancelReservation(
-    $propertyId: ID!
-    $reservationId: ID!,
-    $reason: ReservationPreStayCancellationReason!,
-    $skipReservation: Boolean! = false,
+    $input: CancelReservationInput!,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
-    cancelReservation(input: {
-        propertyId: $propertyId,
-        reservationId: $reservationId,
-        reason: $reason
-    }) {
-        reservation @skip(if: $skipReservation) {
+    cancelReservation(input: $input) {
+        reservation {
             ...ReservationData
         }
     }

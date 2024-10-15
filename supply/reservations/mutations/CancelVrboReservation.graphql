@@ -1,23 +1,10 @@
 mutation CancelVrboReservation(
-    $propertyId: ID!,
-    $reservationId: ID!,
-    $primaryReason: VrboCancellationReason!,
-    $secondaryReason: VrboCancellationSecondaryReason,
-    $clientMutationId: String,
-    $cancellationPolicyOverride: VrboCancellationPolicyOverride,
-    $skipReservation: Boolean! = false,
+    $input: CancelVrboReservationInput!,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
-    cancelVrboReservation(input: {
-        propertyId: $propertyId,
-        reservationId: $reservationId,
-        primaryReason: $primaryReason,
-        secondaryReason: $secondaryReason,
-        clientMutationId: $clientMutationId,
-        cancellationPolicyOverride: $cancellationPolicyOverride
-    }) {
-        reservation @skip(if: $skipReservation) {
+    cancelVrboReservation(input: $input) {
+        reservation {
             ...ReservationData
         }
     }

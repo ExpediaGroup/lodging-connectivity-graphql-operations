@@ -1,23 +1,10 @@
 mutation ChangeReservationReconciliation(
-    $propertyId: ID!,
-    $reservationId: ID!,
-    $checkInDate: LocalDate!,
-    $checkOutDate: LocalDate!,
-    $reason: ReservationChangeReason,
-    $supplierAmount: SupplierAmountInput,
-    $skipReservation: Boolean! = false,
+    $input: ChangeReservationReconciliationInput!,
     $includePaymentInstrumentToken: Boolean! =  false,
     $includeSupplierAmount: Boolean! = false
 ) {
-    changeReservationReconciliation(input: {
-        propertyId: $propertyId,
-        reservationId: $reservationId,
-        checkInDate: $checkInDate,
-        checkOutDate: $checkOutDate,
-        reason: $reason,
-        supplierAmount: $supplierAmount
-    }) {
-        reservation @skip(if: $skipReservation) {
+    changeReservationReconciliation(input: $input) {
+        reservation {
             ...ReservationData
         }
     }

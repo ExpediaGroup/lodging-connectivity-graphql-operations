@@ -4,7 +4,7 @@ query PropertyReservationsSummary(
     $pageSize: Int! = 10,
     $cursor: String,
     $filter: ReservationFilterInput,
-    $checkOutDate: CheckOutDateFilter,
+    $checkOutDate: CheckOutDateFilter
 ) {
     property(id: $propertyId, idSource: $idSource) {
         reservations(pageSize: $pageSize, checkOutDate: $checkOutDate, filter: $filter, after: $cursor) {
