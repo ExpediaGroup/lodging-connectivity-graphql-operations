@@ -7,8 +7,8 @@ extend type Query {
 }
 
 input ReservationSelections {
-    includePaymentInstrumentToken: Boolean! =  false,
-    includeSupplierAmount: Boolean! = false
+    includePaymentInstrumentToken: Boolean!,
+    includeSupplierAmount: Boolean!
 }
 
 input PropertyReservationsInput {
