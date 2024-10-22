@@ -1,21 +1,5 @@
-query SandboxProperties(
-    $cursor: String,
-    $pageSize: Int,
-    $skipReservations: Boolean! = false
-) {
+query SandboxProperties($cursor: String,$pageSize: Int) {
     properties(cursor: $cursor, limit: $pageSize) {
-        cursor
-        totalCount
-        elements {
-            id
-            name
-            reservations @skip(if: $skipReservations) {
-                totalCount
-                cursor
-                elements {
-                   ...SandboxReservationData
-                }
-            }
-        }
+        ...SandboxPaginatedProperties
     }
 }

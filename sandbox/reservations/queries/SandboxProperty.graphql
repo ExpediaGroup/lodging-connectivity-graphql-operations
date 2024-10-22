@@ -3,14 +3,6 @@ query SandboxProperty(
     $skipReservations: Boolean! = false
 ) {
     property(id: $id) {
-        id
-        name
-        reservations @skip(if: $skipReservations) {
-            cursor
-            totalCount
-            elements {
-                ...SandboxReservationData
-            }
-        }
+        ...SandboxProperty
     }
 }

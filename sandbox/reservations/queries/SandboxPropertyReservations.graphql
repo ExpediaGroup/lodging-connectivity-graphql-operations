@@ -1,0 +1,11 @@
+query SandboxPropertyReservations(
+    $propertyId: ID!,
+    $cursor: String,
+    $pageSize: Int
+) {
+    property(id: $propertyId) {
+        reservations(cursor: $cursor, limit: $pageSize) {
+            ...SandboxPaginatedReservationsData
+        }
+    }
+}

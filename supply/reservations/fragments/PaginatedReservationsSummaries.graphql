@@ -1,0 +1,13 @@
+fragment PaginatedReservationsSummaries on ReservationsConnection {
+    totalCount
+    pageInfo {
+        hasNextPage
+        endCursor
+    }
+    edges {
+        cursor
+        node {
+            ...ReservationSummaryData
+        }
+    }
+}

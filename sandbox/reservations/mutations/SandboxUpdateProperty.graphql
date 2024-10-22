@@ -1,9 +1,7 @@
 mutation SandboxUpdateProperty($input: UpdatePropertyInput!) {
     updateProperty(input: $input) {
-        clientMutationId
         property {
-            id
-            name
+            ...SandboxProperty
         }
     }
 }
