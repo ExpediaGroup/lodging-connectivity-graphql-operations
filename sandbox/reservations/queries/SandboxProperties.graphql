@@ -1,5 +1,5 @@
 query SandboxProperties($cursor: String,$pageSize: Int) {
     properties(cursor: $cursor, limit: $pageSize) {
-        ...SandboxPaginatedProperties
+        ...SandboxPaginatedPropertiesData
     }
 }

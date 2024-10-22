@@ -1,7 +1,0 @@
-fragment SandboxPaginatedProperties on PropertiesResponse {
-    totalCount
-    cursor
-    elements {
-        ...SandboxProperty
-    }
-}

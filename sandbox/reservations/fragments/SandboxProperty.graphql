@@ -1,5 +1,0 @@
-fragment SandboxProperty on Property {
-    id
-    name
-    supplierUnitId
-}

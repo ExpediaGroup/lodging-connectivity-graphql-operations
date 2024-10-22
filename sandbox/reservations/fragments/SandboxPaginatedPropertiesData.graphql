@@ -1,0 +1,7 @@
+fragment SandboxPaginatedPropertiesData on PropertiesResponse {
+    totalCount
+    cursor
+    elements {
+        ...SandboxPropertyData
+    }
+}

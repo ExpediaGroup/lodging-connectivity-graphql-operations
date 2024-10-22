@@ -1,7 +1,6 @@
 extend type Query {
     sandboxReservationsPlaceholder(
-        sandboxPropertiesVariables: SandboxPropertiesInput,
-        sandboxPropertyVariables: SandboxPropertyInput,
+        sandboxPropertiesInput: SandboxPropertiesInput,
         sandboxPropertyReservationsInput: SandboxPropertyReservationsInput
     ): Boolean
 }
@@ -9,12 +8,6 @@ extend type Query {
 input SandboxPropertiesInput {
     cursor: String
     pageSize: Int
-    skipReservations: Boolean!
-}
-
-input SandboxPropertyInput {
-    id: ID!
-    skipReservations: Boolean!
 }
 
 input SandboxPropertyReservationsInput {
