@@ -1,7 +1,7 @@
 mutation SandboxCreateProperty($input: CreatePropertyInput!) {
     createProperty(input: $input) {
         property {
-           ...SandboxProperty
+           ...SandboxPropertyData
         }
     }
 }

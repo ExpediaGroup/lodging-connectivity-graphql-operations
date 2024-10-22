@@ -1,4 +1,4 @@
-fragment PaginatedReservationsSummaries on ReservationsConnection {
+fragment PaginatedReservationsSummariesData on ReservationsConnection {
     totalCount
     pageInfo {
         hasNextPage
