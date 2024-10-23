@@ -10,7 +10,17 @@ query PropertyReservations(
 ) {
     property(id: $propertyId, idSource: $idSource) {
         reservations(pageSize: $pageSize, checkOutDate: $checkOutDate, filter: $filter, after: $cursor) {
-           ...PaginatedReservationsData
+            totalCount
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            edges {
+                cursor
+                node {
+                    ...ReservationData
+                }
+            }
         }
     }
 }

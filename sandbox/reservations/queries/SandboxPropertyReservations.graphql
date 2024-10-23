@@ -5,7 +5,11 @@ query SandboxPropertyReservations(
 ) {
     property(id: $propertyId) {
         reservations(cursor: $cursor, limit: $pageSize) {
-            ...SandboxPaginatedReservationsData
+            cursor
+            totalCount
+            elements {
+                ...SandboxReservationData
+            }
         }
     }
 }

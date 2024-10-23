@@ -1,7 +1,0 @@
-fragment SandboxPaginatedReservationsData on ReservationsResponse {
-    cursor
-    totalCount
-    elements {
-        ...SandboxReservationData
-    }
-}
