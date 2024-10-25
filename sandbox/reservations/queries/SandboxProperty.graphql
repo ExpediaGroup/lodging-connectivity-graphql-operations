@@ -1,6 +1,5 @@
 query SandboxProperty(
-    $id: ID!,
-    $skipReservations: Boolean! = false
+    $id: ID!
 ) {
     property(id: $id) {
         ...SandboxPropertyData
