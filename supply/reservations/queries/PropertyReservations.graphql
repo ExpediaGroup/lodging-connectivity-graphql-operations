@@ -12,8 +12,8 @@ query PropertyReservations(
         reservations(pageSize: $pageSize, checkOutDate: $checkOutDate, filter: $filter, after: $cursor) {
             totalCount
             pageInfo {
-                endCursor
                 hasNextPage
+                endCursor
             }
             edges {
                 cursor

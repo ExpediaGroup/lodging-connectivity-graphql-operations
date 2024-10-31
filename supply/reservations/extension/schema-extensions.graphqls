@@ -1,7 +1,6 @@
 extend type Query {
     reservationsPlaceholder(
         propertyReservationsVariables: PropertyReservationsInput,
-        propertyReservationsSummaryVariables: PropertyReservationsSummaryInput,
         reservationSelection: ReservationSelections
     ): Boolean
 }
@@ -14,17 +13,6 @@ input ReservationSelections {
 input PropertyReservationsInput {
     propertyId: String!,
     idSource: IdSource = EXPEDIA,
-    pageSize: Int! = 10,
-    cursor: String,
-    filter: ReservationFilterInput,
-    checkOutDate: CheckOutDateFilter
-}
-
-input PropertyReservationsSummaryInput {
-    propertyId: String!,
-    idSource: IdSource = EXPEDIA,
-    pageSize: Int! = 10,
-    cursor: String,
     filter: ReservationFilterInput,
     checkOutDate: CheckOutDateFilter
 }

@@ -1,9 +1,7 @@
 mutation SandboxCreateProperty($input: CreatePropertyInput!) {
     createProperty(input: $input) {
-        clientMutationId
         property {
-            id
-            name
+           ...SandboxPropertyData
         }
     }
 }

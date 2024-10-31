@@ -1,6 +1,0 @@
-query SandboxReservationsPlaceholder(
-    $sandboxPropertiesVariables: SandboxPropertiesInput,
-    $sandboxPropertyVariables: SandboxPropertyInput
-) {
-    sandboxReservationsPlaceholder
-}

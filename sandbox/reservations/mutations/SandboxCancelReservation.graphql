@@ -1,6 +1,5 @@
 mutation SandboxCancelReservation($input: CancelReservationInput!) {
     cancelReservation(input: $input) {
-        clientMutationId
         reservation {
             ...SandboxReservationData
         }
