@@ -125,6 +125,12 @@ enum AgeCategory {
     INFANT
 }
 
+type AgencyModelConfig {
+    agencyRatePlanId: ID!
+    paymentScheduleApplicable: Boolean!
+    supplierCode: String!
+}
+
 type AgeRange {
     maxAge: Int
     minAge: Int
@@ -408,6 +414,36 @@ input AttachmentUrlInput {
     value: String
 }
 
+"""Type of Authorized Expense on VCC"""
+enum AuthorizedExpense {
+    """
+    Indicates that the provided VCC is for pre-stay charges only (e.g.,
+    deposits, cancellation fees, no-show fees). A physical card must be presented at check-in for any
+    remaining balance, as well as incidentals.
+    """
+    PRESTAY_EXPENSES_ONLY
+
+    """
+    Indicates that both pre-stay charges and the total booking amount are
+    authorized, but no incidentals are authorized. A physical card must be presented at check-in for any
+    incidentals.
+    """
+    TOTAL_BOOKING_AMOUNT
+
+    """
+    Indicates that pre-stay, total booking, and incidental expenses are
+    authorized. See `specified_incidental_expenses`. A physical card may be required for additional
+    incidental expenses.
+    """
+    TOTAL_PLUS_INCIDENTALS
+
+    """
+    "Indicates that a property should refer to the authorization form that will
+    be sent either by the card provider or the authorizing company.
+    """
+    SEE_AUTHORIZATION_FORM
+}
+
 enum BaseWeightUnit {
     KILOGRAMS
     POUNDS
@@ -582,8 +618,17 @@ type CancellationPolicy {
     type: CancellationPolicyType!
 }
 
+"""
+Describes the time frame window during a cancellation policy tier is applicable.
+"""
 type CancellationPolicyCancellationWindow {
+    """
+    The cutoff time value for the cancellation window, which is a function of the temporal unit.
+    E.g. for "30 days", the value would be 30.
+    """
     cutoff: Int!
+
+    """The unit of time for the cancellation window."""
     temporalUnit: CancellationWindowTemporalUnit!
 }
 
@@ -885,6 +930,71 @@ input CoordinatesInput {
     longitude: Float!
 }
 
+type CorporateInvoice {
+    """Email address to send invoice"""
+    invoiceRecipient: EmailAddress
+
+    """VAT number to include on invoice"""
+    vatNumber: String
+
+    """The traveler's legal entity to appear on the invoice."""
+    legalEntity: LegalEntity
+
+    """Specific site or branding to be used on the invoice instead of source."""
+    pointOfSaleDisplay: String
+}
+
+type CorporatePaymentHandling {
+    """
+    Indicates which type of expenses are authorized to be charged to the VCC
+    """
+    authorizedExpense: AuthorizedExpense
+
+    """
+    Included list of enumerated categories to restrict the authorized incidentals. This is only utilized
+    when `authorized_expenses` is supplied with `total_plus_incidentals` and restrictions on incidentals are
+    desired.<br>
+    Example: To allow any incidental expenses, specify `authorized_expenses` equal to
+    `total_plus_incidentals` and omit `specified_incidental_expenses`.
+    """
+    specifiedIncidentalExpenses: [String!]
+
+    """
+    The m amount that can be charged to the VCC. This is the sum of all charges, including taxes and fees.
+    """
+    maxCardChargeAllowed: Money
+
+    """
+    Indicates whether a Verification number (CVC) is required for the provided VCC. If this is marked required, the security_code
+    field for the payment MUST be provided.
+    """
+    verificationNumberRequired: Boolean
+
+    """
+    Company that will issue the authorization form for the virtual credit card payment.
+    """
+    authorizingCompany: String
+
+    """The full phone number of the VCC contact."""
+    cardContactFullPhoneNumber: String
+
+    """The email address of the VCC contact."""
+    cardContactEmail: EmailAddress
+
+    """Requested limit to number of charging attempts."""
+    maxChargingAttemptAllowed: Int
+
+    """
+    Start date for valid range of the VCC payment instrument, in ISO 8601 format (YYYY-MM-DD).
+    """
+    payablePeriodStart: LocalDate
+
+    """
+    End date for valid range of the VCC payment instrument, in ISO 8601 format (YYYY-MM-DD).
+    """
+    payablePeriodEnd: LocalDate
+}
+
 """An ISO 3166-1 alpha-3 CountryCode Scalar"""
 scalar CountryCode
 
@@ -894,6 +1004,16 @@ input CreateAddressInput {
     countryCode: CountryCode!
     locality: String!
     postalCode: String!
+}
+
+input CreateAgencyModelConfigInput {
+    paymentScheduleApplicable: Boolean!
+    supplierCode: String!
+}
+
+input CreateAreaInput {
+    unit: AreaUnit!
+    value: Int!
 }
 
 input CreateCancellationPolicyConfigInput {
@@ -954,6 +1074,11 @@ input CreateMaxOccupancyPolicyInput {
     adultCount: Int
     note: [LocalizedStringInput!]
     totalGuestCount: Int!
+}
+
+input CreateMerchantModelConfigInput {
+    supplierCode: String!
+    taxInclusive: Boolean!
 }
 
 input CreateNotificationCallbackConfigInput {
@@ -1036,17 +1161,16 @@ type CreatePropertyPayload {
 }
 
 input CreateRatePlanInput {
+    agencyModelConfig: CreateAgencyModelConfigInput
     baseRateGuestCount: Int
     cancellationPolicyConfigId: ID!
     clientMutationId: ID
-    distributionRules: [RatePlanDistributionRuleInput!]!
     feeSetId: ID
+    merchantModelConfig: CreateMerchantModelConfigInput
     name: String!
-    paymentScheduleApplicable: Boolean
     pricingModel: PricingModel!
     propertyId: ID!
     restrictions: CreateRatePlanRestrictionsInput
-    taxInclusive: Boolean
     type: RatePlanType!
     unitId: ID!
     valueAdds: [String!]!
@@ -1087,6 +1211,112 @@ input CreateStayPolicyInput {
     petsPolicy: CreatePetsPolicyInput
     rentalAgreementUrl: Url
     smokingPolicy: CreateSmokingPolicyInput
+}
+
+input CreateUnitInput {
+    """
+    The different age categories supported by the unit. At the very least, the 'Adult' category must be defined.
+    """
+    ageCategories: [UnitAgeCategoryInput!]!
+    amenities: [AmenityInput!]
+
+    """Used to define unit size."""
+    area: CreateAreaInput
+    bedGroups: [BedGroupInput!]
+    clientMutationId: String
+
+    """
+    Defines the extra bed combination (type, size, quantity, and surcharge) the unit may have.
+    """
+    extraBeds: [ExtraBedTypeInput!]
+
+    """
+    Defines the maximum occupancy of the unit in total and by age category.
+    """
+    maxOccupancy: CreateUnitOccupancyInput
+
+    """
+    Name object. Collection of elements/attributes related to the name of a unit.
+    """
+    nameConfig: CreateUnitNameConfigInput!
+    propertyId: ID!
+
+    """
+    Used to define whether the unit is smoking, nonsmoking, or if both options are available on request.
+    """
+    smokingPolicy: UnitSmokingPolicy!
+    supplierUnitId: String!
+}
+
+input CreateUnitNameAttributesInput {
+    """Attribute that determines if unit has accessibility."""
+    accessibility: UnitNameAccessibilityInput
+
+    """
+    Attribute that describes the details of the bedroom used to compose the name of the unit.
+    """
+    bedroomDetails: String
+
+    """
+    Attribute to add a custom label as suffix to the unit name, always used in the name if provided.
+    """
+    customLabel: String
+
+    """Attribute used to highlight a feature of the unit on its name."""
+    featuredAmenity: String
+
+    """
+    Attribute that determines whether or not to include bed type on the unit name.
+    """
+    includeBedType: Boolean
+
+    """
+    Attribute that determines if the unit's smoking preferences should be used to compose the name of the unit.
+    """
+    includeSmokingPolicy: Boolean
+
+    """Attribute used to highlight the location of the unit."""
+    location: String
+
+    """
+    Attribute that describes the class of unit, which is used to compose the name, e.g Basic, Standard etc..
+    """
+    unitClass: String
+
+    """
+    Attribute that determines the type of unit, which is used to compose the name, e.g Room, Apartment, Cabin etc.
+    """
+    unitType: String!
+
+    """
+    Attribute that gives additional information about the view of the unit.
+    """
+    view: String
+}
+
+input CreateUnitNameConfigInput {
+    """Collection of attributes that can be used to build a unit name."""
+    attributes: CreateUnitNameAttributesInput!
+}
+
+input CreateUnitOccupancyInput {
+    """
+    Maximum number of adults that can reside in the unit, must be at least 1 and less than or equal to the total.
+    """
+    adults: Int!
+
+    """
+    Maximum number of children that can reside in the unit, must be less than the total.
+    """
+    children: Int!
+
+    """Total count of people that can reside in the unit, must be at least 1."""
+    total: Int!
+}
+
+type CreateUnitPayload {
+    clientMutationId: String
+    unit: Unit
 }
 
 input CreateUnitSpacesBathroomInput {
@@ -1332,6 +1562,18 @@ type DeleteNotificationCallbackConfigPayload {
     callbackConfigId: ID!
 }
 
+input DeleteRatePlanInput {
+    clientMutationId: ID
+    id: ID!
+    propertyId: ID!
+}
+
+type DeleteRatePlanPayload {
+    clientMutationId: ID
+    id: ID!
+    propertyId: ID!
+}
+
 input DeleteUnitSpaceInput {
     clientMutationId: String
     propertyId: ID!
@@ -1367,6 +1609,21 @@ interface Discount {
     Unit of the discount. Currently only PERCENT is supported for MVP for Create and Update. AMOUNT promotions are supported only for Read.
     """
     unit: DiscountUnit!
+}
+
+"""Describes a single discount item."""
+type DiscountFeeItem {
+    """The amount of the discount item, exclusive of taxes."""
+    preTaxAmount: Money!
+
+    """The external id partners provide for the amount type."""
+    externalId: String
+
+    """The name of the discount fee item, as provided by the supplier."""
+    name: String
+
+    """The code to help provide further details on the amount type."""
+    productCode: String
 }
 
 type DiscountPromotion implements Promotion {
@@ -1425,10 +1682,15 @@ enum DiscountUnit {
 }
 
 """
-Helps partners distinguish between a booking made on a vrbo platform vs all the other Expedia brands
+Describes the possible distribution channels in which a reservation can be made.
 """
 enum DistributionChannel {
+    """Represents a reservation made Vrbo."""
     VRBO
+
+    """
+    Represents a reservation made on Expedia or any of the other Expedia Group brands.
+    """
     EXPEDIA_INTEGRATED
 }
 
@@ -1475,6 +1737,11 @@ type EffectivePolicy {
     endDateTimeUtc: DateTime!
 }
 
+enum EgBusinessModel {
+    AGENCY
+    MERCHANT
+}
+
 type EligibleRatePlan {
     """Id of the rate plan as stored in the Expedia platform."""
     id: ID!
@@ -1489,7 +1756,6 @@ input EligibleRatePlanInput {
 A field whose value conforms to the standard internet email address format as specified in HTML Spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
 """
 scalar EmailAddress
-@specifiedBy(url: "https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address")
 
 input EnablePropertyInput {
     clientMutationId: String
@@ -1596,6 +1862,15 @@ type ExpediaSupplierAmount implements SupplierAmount {
     rates: [SupplierRate!]!
 }
 
+"""The details of the tax rule when this is a tax rule defined by EG."""
+type ExpediaTaxRule {
+    """The name of the tax imposition type (e.g. "Sales tax")"""
+    impositionTypeName: String!
+
+    """Details about the jurisdiction where the tax is imposed."""
+    jurisdiction: Jurisdiction!
+}
+
 type ExtraBedType {
     quantity: Int!
     size: String!
@@ -1607,24 +1882,24 @@ type ExtraBedType {
     type: String!
 }
 
-type Fee {
-    ageCategory: FeeAgeCategory
-    charges: [FeeCharge!]!
-    name: String!
-    restrictions: FeeRestrictions
-    scope: String!
-    taxable: Boolean
+input ExtraBedTypeInput {
+    quantity: Int!
+    size: String!
+
+    """
+    Only extra beds of type 'Crib' and 'Rollaway Bed' can have a surcharge defined.
+    """
+    surcharge: SurchargeInput
     type: String!
-    variesByLengthOfStay: Boolean
 }
 
-enum FeeAgeCategory {
-    ADULT
-    CHILD_A
-    CHILD_B
-    CHILD_C
-    CHILD_D
-    INFANT
+type Fee {
+    ageCategory: String
+    category: String!
+    charges: [FeeCharge!]!
+    restrictions: FeeRestrictions
+    taxable: Boolean
+    variesByLengthOfStay: Boolean
 }
 
 enum FeeBusinessModel {
@@ -1667,26 +1942,22 @@ input FeeDateRangeInput {
 }
 
 input FeeInput {
-    ageCategory: FeeAgeCategory
+    ageCategory: String
+    category: String!
     charges: [FeeChargeInput!]!
-    name: String!
     restrictions: FeeRestrictionsInput
-    scope: String!
     taxable: Boolean
-    type: String!
     variesByLengthOfStay: Boolean
 }
 
 type FeeRestrictions {
     dateRange: FeeDateRange
     extraGuestRange: IntRange
-    rangeOfNight: IntRange
 }
 
 input FeeRestrictionsInput {
     dateRange: FeeDateRangeInput
     extraGuestRange: IntRangeInput
-    rangeOfNight: IntRangeInput
 }
 
 type FeeSet {
@@ -1744,7 +2015,10 @@ type GeneratePreviewVrboReservationUpdatePayload {
 }
 
 type Guest {
+    """First Name of the Primary Guest"""
     firstName: String!
+
+    """Last Name of the Primary Guest"""
     lastName: String!
 
     """Guest loyalty tier. Values include MEMBER, VIP, PREMIUMVIP and null."""
@@ -1781,6 +2055,12 @@ type GuestContactPhoneNumber {
 
     """Phone number (format: 3737059)"""
     number: String!
+
+    """
+    Full phone number represented as a single string, as captured at the time of booking by the traveler.
+    The value is no particular standardized format and may even change depending on which point of sale was used to make the reservation.
+    """
+    fullPhoneNumber: String!
 }
 
 type GuestRating {
@@ -1855,28 +2135,52 @@ input InputLocalizedString {
     value: String!
 }
 
+"""
+Details of a single payment installment associated with the reservation.
+"""
 type Installment {
+    """Unique identifier for the installment."""
+    id: ID!
+
+    """The due date of the installment."""
     dueDate: LocalDate!
+
+    """The total amount of the installment."""
     amount: Money!
+
+    """The payment status of the installment."""
     paymentStatus: InstallmentPaymentStatus
 
-    """VRBO reservation specific installment distribution details"""
+    """
+    Provides a view of how the payment installment amount is distributed.
+    The sum of all amounts in the distributions add up to the total amount of the installment.
+    """
     distributions: [InstallmentDistribution!]!
-    installmentId: String
 }
 
-"""VRBO reservation specific distribution"""
+"""Describes a single distribution item of a Vrbo payment installment."""
 type InstallmentDistribution {
-    """
-    type of installment distribution item (PARTNER_PAYMENT, COMMISSION, TRAVELER_SERVICE_FEE, etc)
-    """
-    type: String!
+    """The type of the distribution."""
+    type: InstallmentDistributionType!
 
-    """amount value for installment distribution item"""
+    """The amount of the distribution item."""
     amount: Money!
 }
 
-"""Payment Status of the specific Installment"""
+"""The various types of distributions for a payment installment."""
+enum InstallmentDistributionType {
+    COMMISSION
+    SUPPLIER_FEES
+    PAYMENT_PROCESSING
+    PAYMENT_PROCESSING_REFUNDABLE_DAMAGE_DEPOSIT
+    PROPERTY_DAMAGE_PROTECTION
+    REFUNDABLE_DAMAGE_DEPOSIT
+    TRAVELER_SERVICE_FEE
+    EG_REMITTED_TAX
+    SUPPLIER_REMITTED_TAX
+}
+
+"""Describes the possible statuses of a payment installment."""
 enum InstallmentPaymentStatus {
     NOT_STARTED
     SCHEDULED
@@ -1910,6 +2214,11 @@ type InvalidScenario {
 }
 
 type InventoryConfig {
+    """
+    Specifies the business model of the property: Merchant, Agency, or both
+    """
+    businessModels: [EgBusinessModel!]!
+
     """Specifies the pricing model of the property"""
     pricingModel: PropertyPricingModel!
 
@@ -1924,12 +2233,27 @@ enum InventoryType {
 
     """VRBO only supported Inventory Type"""
     IPM
+
+    """Types applying to Core OTA"""
+    GDS
+    LOCAL
+    INVALID
+    THIRD_PARTY
 }
 
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+"""Entity capturing the jurisdiction details for a specific tax."""
+type Jurisdiction {
+    """The level of the jurisdiction (e.g. "CITY" or "STATE")"""
+    level: String!
+
+    """The name of the jurisdiction (e.g. "AUSTIN" or "TEXAS")"""
+    name: String!
+}
 
 """
 Jurisdiction regulations that the partner needs to meet to comply with onboarding.
@@ -1982,6 +2306,14 @@ input LastUpdatedDateTimeFilter {
     the date defining the end of the last updated date window (format: YYYY-MM-DDTHH:mm:ssTZD, TZD is a time zone designator in the form +/-hh:mm)
     """
     to: ZoneDateTime!
+}
+
+type LegalEntity {
+    """Legal entity name"""
+    name: String!
+
+    """Postal address"""
+    address: Address
 }
 
 """Legacy property type for the district."""
@@ -2040,6 +2372,51 @@ A type representing a time with no time zone in format HH:mm:ss or HH:mm. ex: 10
 """
 scalar LocalTime
 
+"""
+Lists various supplier and traveler related fees based on the reservation having been made on one of EG's marketplace (e.g. traveler service fees, commission, etc.).
+"""
+type MarketplaceFees {
+    """
+    Lists various supplier related fees based on the reservation having been made on one of EG's marketplace (e.g. commission).
+    """
+    supplier: [MarketplaceSupplierFeeItem]!
+
+    """
+    Lists various traveler related fees based on the reservation having been made on one of EG's marketplace (e.g. traveler service fees).
+    """
+    traveler: [MarketplaceTravelerFeeItem]
+}
+
+"""Describes a single supplier related marketplace fee item."""
+type MarketplaceSupplierFeeItem {
+    """The type of the fee item."""
+    type: MarketplaceSupplierFeeItemType!
+
+    """The amount of the fee item."""
+    amount: Money!
+}
+
+"""Describes the various the supplier-related marketplace fee item type."""
+enum MarketplaceSupplierFeeItemType {
+    COMMISSION
+}
+
+"""Describes a single traveler related marketplace fee item."""
+type MarketplaceTravelerFeeItem {
+    """The type of the fee item."""
+    type: MarketplaceTravelerFeeItemType!
+
+    """The amount of the fee item."""
+    amount: Money!
+}
+
+"""Describes the various the traveler-related marketplace fee item type."""
+enum MarketplaceTravelerFeeItemType {
+    TRAVELER_SERVICE_FEE
+    PROPERTY_DAMAGE_PROTECTION
+    REFUNDABLE_DAMAGE_DEPOSIT
+}
+
 """Maximum night cap parameters for the jurisdiction."""
 type MaxNightCap {
     """Annual night cap."""
@@ -2075,6 +2452,12 @@ interface MediaResponse {
     totalCount: Int!
 }
 
+type MerchantModelConfig {
+    merchantRatePlanId: ID!
+    supplierCode: String!
+    taxInclusive: Boolean!
+}
+
 """
 Indicates who the merchant of record for the reservation is. In other words, who collects the money from the traveler.
 """
@@ -2082,7 +2465,7 @@ enum MerchantOfRecord {
     """
     Indicates Expedia Group is the Merchant for this Reservation. Expedia Group Collects payment
     """
-    EG
+    EXPEDIA_GROUP
 
     """Indicates Suppliers are the Merchant for this Reservation"""
     SUPPLIER
@@ -2429,6 +2812,7 @@ type Mutation {
     createCancellationPolicyConfig(input: CreateCancellationPolicyConfigInput!): CreateCancellationPolicyConfigPayload
     createFeeSet(input: CreateFeeSetInput!): CreateFeeSetPayload
     createRatePlan(input: CreateRatePlanInput!): CreateRatePlanPayload
+    deleteRatePlan(input: DeleteRatePlanInput!): DeleteRatePlanPayload
     replaceCancellationPolicyConfig(input: ReplaceCancellationPolicyConfigInput!): ReplaceCancellationPolicyConfigPayload
     replaceFeeSet(input: ReplaceFeeSetInput!): ReplaceFeeSetPayload
     updateRatePlan(input: UpdateRatePlanInput!): UpdateRatePlanPayload
@@ -2556,6 +2940,7 @@ type Mutation {
     ): UpdatedReviewResponse!
     createProperty(input: CreatePropertyInput!): CreatePropertyPayload
     createPropertyImage(input: CreatePropertyImageInput!): CreatePropertyImagePayload
+    createUnit(input: CreateUnitInput!): CreateUnitPayload
     createUnitSpaces(input: CreateUnitSpacesInput!): CreateUnitSpacesPayload
     deleteImage(input: DeleteImageInput!): DeleteImagePayload
     deleteUnitSpace(input: DeleteUnitSpaceInput!): DeleteUnitSpacePayload
@@ -2566,7 +2951,7 @@ type Mutation {
     setPropertyTaxRecord(input: SetPropertyTaxRecordInput!): SetPropertyTaxRecordPayload
     updateImage(input: UpdateImageInput!): UpdateImagePayload
     updateProperty(input: UpdatePropertyInput!): UpdatePropertyPayload
-    updateUnit(input: UpdatePropertyUnitInput!): UpdatePropertyUnitPayload
+    updateUnit(input: UpdateUnitInput!): UpdateUnitPayload
 
     """
     Update unit registration of property using property associated attributes id/idSource
@@ -2615,6 +3000,9 @@ type NotificationCallbackConfig {
 
     """Secret expiration date time"""
     secretExpirationDateTime: LocalDateTime!
+
+    """Previous Secret expiration date time"""
+    previousSecretExpirationDateTime: LocalDateTime
 
     """Request timeout when sending a notification on the callback url"""
     requestTimeoutSeconds: Int!
@@ -2739,6 +3127,9 @@ type Payment {
 
     """Schedule and details of the Payment"""
     installments: [Installment!]!
+
+    """Payment handling details for corporate traveler"""
+    corporatePaymentHandling: CorporatePaymentHandling
 }
 
 type PaymentCardDescriptor {
@@ -2781,6 +3172,7 @@ type PaymentInstrument {
 
 """Type for Payment Reservation"""
 enum PaymentInstrumentType {
+    AFFILIATE_VIRTUAL_CARD
     GUEST_CREDIT_CARD
     EXPEDIA_VIRTUAL_CARD
     BANK_TRANSFER
@@ -3220,6 +3612,7 @@ enum Purpose {
 type Query {
     cancellationPolicyConfig(id: ID!): CancellationPolicyConfig
     ratePlan(propertyId: ID!, ratePlanId: ID!): RatePlan
+    ratePlansByUnitId(propertyId: ID!, unitId: ID!): [RatePlan!]
 
     """Retrieves a single message using its unique identifier."""
     message(id: ID!): MessageThreadMessage
@@ -3304,33 +3697,22 @@ input RateGuestInput {
 }
 
 type RatePlan {
+    agencyModelConfig: AgencyModelConfig
     baseRateGuestCount: Int
     cancellationPolicyConfig: CancellationPolicyConfig
     creationDateTime: DateTime!
-    distributionRules: [RatePlanDistributionRule!]!
     feeSet: FeeSet
     id: ID!
     lastUpdateDateTime: DateTime!
+    merchantModelConfig: MerchantModelConfig
     name: String!
-    paymentScheduleApplicable: Boolean
     pricingModel: PricingModel!
     propertyId: ID!
     restrictions: RatePlanRestrictions!
     status: RatePlanStatus!
-    taxInclusive: Boolean
     type: RatePlanType!
     unitId: ID!
     valueAdds: [String!]!
-}
-
-type RatePlanDistributionRule {
-    merchantOfRecord: MerchantOfRecord!
-    ratePlanCode: String!
-}
-
-input RatePlanDistributionRuleInput {
-    merchantOfRecord: MerchantOfRecord!
-    ratePlanCode: String!
 }
 
 type RatePlanRestrictions {
@@ -3418,6 +3800,9 @@ type ReconEligibility {
 input RefreshNotificationCallbackConfigSecretInput {
     """Id of callback configuration to update"""
     callbackConfigId: ID!
+
+    """Flag to specify if existing secret will need to be persisted"""
+    keepExistingSecretActive: Boolean! = false
 }
 
 type RefreshNotificationCallbackConfigSecretPayload {
@@ -3429,6 +3814,9 @@ type RefreshNotificationCallbackConfigSecretPayload {
 
     """Secret expiration date time"""
     secretExpirationDateTime: LocalDateTime!
+
+    """Previous Secret expiration date time"""
+    previousSecretExpirationDateTime: LocalDateTime
 }
 
 input RefundReservationInput {
@@ -3856,6 +4244,30 @@ enum RemittanceType {
     GROSS
 }
 
+"""Describes a single rent or in-rent fee item."""
+type RentFeeItem {
+    """The type of the fee item."""
+    type: RentItemizationFeeType!
+
+    """The amount of the fee item, exclusive of taxes."""
+    preTaxAmount: Money!
+
+    """The external id partners provide for the amount type."""
+    externalId: String
+
+    """The name of the fee item, as provided by the supplier."""
+    name: String
+
+    """The product code to help provide further details on the amount type."""
+    productCode: String
+}
+
+"""Itemization details on the rent fee types"""
+enum RentItemizationFeeType {
+    RENTAL
+    SUPPLIER_FEE
+}
+
 input ReplaceCancellationPolicyConfigInput {
     additionalCancellationFee: MoneyInput
     clientMutationId: String
@@ -3892,12 +4304,6 @@ type Reservation {
     """Alternative IDs for the Reservation"""
     alternativeIds: ReservationAlternativeIds!
 
-    """Details of the guests in the reservation"""
-    guests: ReservationGuests!
-
-    """Information on the statuses of the reservation"""
-    statuses: ReservationStatuses!
-
     """Details on the cancellations if the reservation has been canceled"""
     cancellation: ReservationCancellation
 
@@ -3905,18 +4311,6 @@ type Reservation {
     Indicates who the merchant of record for the reservation is. In other words, who collects the money from the traveler.
     """
     merchantOfRecord: MerchantOfRecord!
-
-    """Relevant dates for the reservation"""
-    stayDates: ReservationStayDates!
-
-    """Time stamp details for audit trails on the reservation"""
-    audit: ReservationAudit!
-
-    """Information about the distribution details of the reservation"""
-    distribution: ReservationDistribution!
-
-    """Policies attached to the Reservation"""
-    policies: ReservationPolicies!
 
     """last updated Date Time"""
     lastUpdatedDateTime: String!
@@ -3955,7 +4349,7 @@ type Reservation {
     totalGuestCount: Int!
 
     """VRBO only, Count for all pets associated with the reservation."""
-    petCount: Int
+    petCount: Int!
 
     """Accessibility requests made by the guest for the reservation."""
     accessibilityText: [String!]
@@ -3983,11 +4377,6 @@ type Reservation {
     """Current status of the reservation."""
     status: ReservationStatus!
 
-    """
-    Current sub status of the reservation, it is applicable for vrbo reservations only.
-    """
-    subStatus: String
-
     """Eligibility of reconciling current reservation"""
     reconciliationEligibility: ReconEligibility
 
@@ -3997,8 +4386,8 @@ type Reservation {
     """the amounts for Core-OTA reservation"""
     amounts: ReservationAmounts
 
-    """the amounts for VRBO reservation"""
-    vrboAmounts: VrboReservationAmounts
+    """Reservation amount details for vrbo bookings"""
+    vrboAmounts: VrboAmounts
 
     """The contact of the guest who made the reservation"""
     guestContact: GuestContact @deprecated(reason: "Use primaryGuest field")
@@ -4041,19 +4430,30 @@ type Reservation {
     supplierOperatingModel: SupplierOperatingModel
 
     """Inventory type used for this Reservation"""
-    inventoryType: InventoryType
+    inventoryType: InventoryType!
 
     """Remittance Type of the Reservation"""
     remittanceType: RemittanceType
 
     """Policy applied for cancelling the reservation"""
     cancellationPolicy: ReservationCancellationPolicy
+
+    """Invoice details for corporate traveler"""
+    corporateInvoice: CorporateInvoice
+
+    """
+    Helps partners distinguish between a booking made on a vrbo platform vs all the other Expedia brands
+    """
+    distributionChannel: DistributionChannel!
 }
 
 """Alternative Ids for the Reservation"""
 type ReservationAlternativeIds {
     """Supplier Id for the Reservation"""
     supplierId: ID!
+
+    """Reference number of the reservation shared with the traveler"""
+    referenceNumber: String
 }
 
 """Amounts for Core-OTA reservation"""
@@ -4065,36 +4465,37 @@ type ReservationAmounts {
     nightlyPayments: ReservationNightlyPayments!
 }
 
-"""Time stamp details for audit trails on the reservation"""
-type ReservationAudit {
-    """
-    A timestamp for when the reservation was created in UTC. (format: YYYY-MM-DDThh:mm:ssZ, with a time zone designator in the form +/-hh:mm)
-    """
-    creationDateTimeUtc: String!
-
-    """
-    A timestamp for when there was a last update on this reservation in UTC. (format: YYYY-MM-DDThh:mm:ssZ, with a time zone designator in the form +/-hh:mm)
-    """
-    lastUpdateDateTimeUtc: String!
-}
-
-"""Details on the Cancellation if the reservation has been canceled."""
+"""
+Details on about the cancellation when a reservation has been cancelled.
+"""
 type ReservationCancellation {
-    """Indicates the point of sale of the booking"""
+    """ Indicates the primary reason for which the reservation was cancelled."""
     vrboPrimaryReason: VrboCancellationReason
+
+    """
+    Indicates the secondary reason which provides further detail on the primary reason for cancelling the reservation.
+    Not all primary reasons have a secondary reason.
+    At this time, only GUEST_REQUESTED_CANCEL has a secondary reason.
+    """
+    vrboSecondaryReason: VrboCancellationSecondaryReason
 
     """
     Helps partners identify if a reservation is in a pending cancel request state
     """
     pendingCancellation: Boolean!
+
+    """Indicates who initiated the cancellation."""
+    fromRole: ReservationCancellationRole!
 }
 
 """ Only one of the fields percentage, flatAmount, and numberOfNights may be defined and correlate to the CancellationPenaltyRuleType field
 """
 type ReservationCancellationPenaltyRule {
+    """ The type of the penalty rule."""
     type: CancellationPenaltyRuleType!
 
-    """ Represented as a fraction of 1. Example: 15% should be represented as 0.15
+    """
+    Represented as a fraction of 1. Example: 15% should be represented as 0.15
     """
     percentage: Float
 
@@ -4112,14 +4513,24 @@ type ReservationCancellationPenaltyRule {
     numberOfNights: Int
 }
 
+"""Describes the cancellation policy applicable to a reservation."""
 type ReservationCancellationPolicy {
-    """The effective policy for the reservation"""
     effectivePolicy: EffectivePolicy
+
+    """List of tiers in the cancellation policy."""
     tiers: [ReservationCancellationPolicyTier!]
 }
 
+"""Describes a single tier in the cancellation policy."""
 type ReservationCancellationPolicyTier {
+    """
+    Time frame window during which the cancellation policy tier is applicable.
+    """
     cancellationWindow: CancellationPolicyCancellationWindow!
+
+    """
+    The penalty rule for the cancellation policy tier, if the tier is applicable.
+    """
     penaltyRule: ReservationCancellationPenaltyRule!
 }
 
@@ -4128,6 +4539,14 @@ enum ReservationCancellationReason {
     NO_SHOW
     EXTENUATING_CIRCUMSTANCE
     NATURAL_DISASTER
+}
+
+"""
+List of roles which indicate who initiated the cancellation of a reservation.
+"""
+enum ReservationCancellationRole {
+    SUPPLIER
+    TRAVELER
 }
 
 """Reason for updating post stay the reservation."""
@@ -4154,17 +4573,6 @@ type ReservationDailyAmount {
 
     """Percentage of amount (when applicable)"""
     percent: Float
-}
-
-"""Distribution data on the Reservation"""
-type ReservationDistribution {
-    """Indicates the point of sale of the booking"""
-    reservationSource: String
-
-    """
-    Helps partners distinguish between a booking made on a vrbo platform vs all the other Expedia brands
-    """
-    distributionChannel: DistributionChannel!
 }
 
 type ReservationEdge {
@@ -4198,43 +4606,10 @@ input ReservationFilterInput {
     """
     status: [ReservationStatus]
 
-    """limit results to reservations with sub status of a reservation"""
-    subStatus: String
-
     """
     limit results to reservations with updated date time from the date defined by LastUpdatedDateTimeFilter
     """
     lastUpdatedDateTime: LastUpdatedDateTimeFilter
-}
-
-"""Details of the primary guest associated with the reservation"""
-type ReservationGuest {
-    """First Name of the Primary Guest"""
-    firstName: String
-
-    """Last Name of the Primary Guest"""
-    lastName: String
-
-    """email address of the Primary Guest"""
-    emailAddress: EmailAddress!
-
-    """Full phone number of the Primary Guest as entered on the point of sale"""
-    fullPhoneNumber: String
-}
-
-"""Details of the Guests"""
-type ReservationGuests {
-    """Details of the Primary Guest"""
-    primaryGuest: ReservationGuest!
-
-    """Count for all adult guests associated with the reservation."""
-    adultCount: Int!
-
-    """Count for all children associated with the reservation."""
-    childCount: Int!
-
-    """Count for all pets associated with the reservation."""
-    petCount: Int!
 }
 
 """Source of a given reservation ID."""
@@ -4313,12 +4688,6 @@ type ReservationPerStayAmount {
     percent: Float
 }
 
-"""Details of the Policies associated with the reservation"""
-type ReservationPolicies {
-    """Penalty for cancelling the reservation"""
-    cancellationPolicy: ReservationCancellationPolicy!
-}
-
 """Reason for cancelling pre stay reservation."""
 enum ReservationPreStayCancellationReason {
     GUEST_REQUESTED_CANCEL
@@ -4378,27 +4747,142 @@ enum ReservationStatus {
     RAVELER_CANCEL_PENDING_BOOKING
 }
 
-"""Details of the Statuses on the reservation"""
-type ReservationStatuses {
-    """Status of the Reservation"""
-    status: ReservationStatus!
-}
-
-"""Relevant dates associated with the reservation"""
-type ReservationStayDates {
-    """the reservation's arrival date (format: YYYY-MM-DD)"""
-    checkInDate: LocalDate!
-
-    """the reservation's departure date (format: YYYY-MM-DD)"""
-    checkOutDate: LocalDate!
-}
-
 type ReservationValueAddedPromotion {
     """id of the promotion"""
     id: String!
 
     """describes the promotion"""
     description: String!
+}
+
+"""
+Describes a single payment-related transaction associated with the reservation.
+"""
+type ReservationVrboAmountTransaction {
+    """The type of the transaction."""
+    type: ReservationVrboAmountTransactionType!
+
+    """
+    The date on which the transaction was applicable. This date matches the UTC date when the transaction was made.
+    """
+    applicableDate: LocalDate!
+
+    """The amount of the transaction."""
+    amount: Money!
+
+    """The payment status of the transaction."""
+    paymentStatus: ReservationVrboAmountTransactionPaymentStatus!
+
+    """Unique identifier for the installment."""
+    paymentInstallmentId: ID!
+
+    """
+    Provides a view of how the transaction amount is distributed.
+    The sum of all amounts in the distributions add up to the total amount of the transaction.
+    """
+    distributions: [ReservationVrboAmountTransactionDistribution!]!
+}
+
+"""Describes a single distribution item of a payment-related transaction."""
+type ReservationVrboAmountTransactionDistribution {
+    """The type of the distribution."""
+    type: ReservationVrboAmountTransactionDistributionType!
+
+    """The amount of the distribution item."""
+    amount: Money!
+}
+
+"""
+Possible types of a single distribution item of a payment-related transaction.
+"""
+enum ReservationVrboAmountTransactionDistributionType {
+    REFUNDABLE_DAMAGE_DEPOSIT
+    PAYMENT_PROCESSING
+    PAYMENT_PROCESSING_REFUNDABLE_DAMAGE_DEPOSIT
+    TRAVELER_SERVICE_FEE
+    SUPPLIER_INCOME
+    COMMISSION
+    EG_REMITTED_TAX
+    PROPERTY_DAMAGE_PROTECTION
+}
+
+"""
+Possible payment status of payment-related transaction associated with a reservation.
+"""
+enum ReservationVrboAmountTransactionPaymentStatus {
+    CANCELLED
+    PAID
+    PARTIALLY_SETTLED
+    PENDING
+    REMITTED
+    SETTLED
+}
+
+"""
+Possible types of payment-related transaction associated with a reservation.
+"""
+enum ReservationVrboAmountTransactionType {
+    PAYMENT
+    REFUND
+    REFUND_CANCEL
+    CHARGEBACK
+    CHARGEBACK_REVERSAL
+}
+
+"""
+Information about any claims made against the damage protection of a reservation.
+"""
+type ReservationVrboClaim {
+    """The amount of the claim."""
+    amount: Money!
+
+    """
+    Description of why the claim was made, as provided by the supplier at the time the claim was filed.
+    """
+    description: String
+}
+
+"""
+Provides a view on the current balance/running totals of the various amounts of the reservation (supplier rental and other fees, marketplace fees and tax distributions).
+"""
+type ReservationVrboCurrentAmounts {
+    """Lists supplier in-rent fees and other fees."""
+    supplierFees: SupplierFees!
+
+    """
+    Lists various supplier and traveler related fees based on the reservation having been made on one of EG's marketplace (e.g. traveler service fees, commission, etc.).
+    """
+    marketplaceFees: MarketplaceFees!
+
+    """A distribution of tax information pertaining to this reservation."""
+    taxDistributions: [TaxDistribution!]!
+}
+
+"""
+Provides details about the damage protection attached to the reservation and any claims made against it.
+"""
+type ReservationVrboDamageProtection {
+    """Details pertaining to the damage coverage amounts"""
+    coverageAmounts: [ReservationVrboDamageProtectionAmount!]!
+
+    """Information about any claims made against the damage protection."""
+    claim: ReservationVrboClaim
+}
+
+"""Details pertaining to the damage coverage amounts"""
+type ReservationVrboDamageProtectionAmount {
+    """The type of the damage coverage."""
+    type: ReservationVrboDamageProtectionAmountType!
+
+    """The actual amount of the damage coverage."""
+    amount: Money!
+}
+
+"""The types of the damage coverages supported."""
+enum ReservationVrboDamageProtectionAmountType {
+    REFUNDABLE_DAMAGE_DEPOSIT
+    PROPERTY_DAMAGE_PROTECTION
+    DEPOSIT_CARD_ON_FILE
 }
 
 enum ResolutionStatus {
@@ -5094,6 +5578,42 @@ input SupplierAmountInput {
     rates: [SupplierRateInput!]!
 }
 
+"""Describes a single supplier fee item."""
+type SupplierFeeItem {
+    """The amount of the fee item, exclusive of taxes."""
+    preTaxAmount: Money!
+
+    """The external id partners provide for the amount type."""
+    externalId: String
+
+    """The name of the fee item, as provided by the supplier."""
+    name: String
+
+    """The product code to help provide further details on the amount type."""
+    productCode: String
+}
+
+"""Details on the rent and other in-rent fees that were collected."""
+type SupplierFeeRent {
+    """Total rental amount inclusive of all rent and in-rent fees."""
+    preTaxAmount: Money!
+
+    """Itemized view of the various rent and in-rent fees."""
+    items: [RentFeeItem!]!
+}
+
+"""Lists supplier in-rent fees and other fees."""
+type SupplierFees {
+    """Details on the rent and other in-rent fees that were collected."""
+    rent: SupplierFeeRent!
+
+    """Additional fee info for value adds."""
+    fees: [SupplierFeeItem]
+
+    """Details about the discount that was applied."""
+    discounts: [DiscountFeeItem]
+}
+
 """Type of fee charged by the supplier."""
 enum SupplierFeeType {
     BASE_RATE
@@ -5107,7 +5627,7 @@ type SupplierLoyaltyPlanInfo {
     planCode: String
 
     """membership number of the customer"""
-    membershipNumber: Int
+    membershipNumber: String
 }
 
 """Operation Model of the Supplier"""
@@ -5192,6 +5712,36 @@ type Surcharge {
     type: String!
 }
 
+input SurchargeInput {
+    """
+    Defines the amount of the surcharge. Must be defined if type is not 'Free'.
+    """
+    amount: Decimal
+
+    """Defines the surcharge type."""
+    type: String!
+}
+
+"""
+Describes a single item of tax distribution pertaining to a reservation.
+"""
+type TaxDistribution {
+    """The tax rule that applies to this tax distribution."""
+    rule: TaxRule!
+
+    """The amount of tax collected."""
+    taxAmount: Money!
+
+    """The remitting party for the tax item."""
+    remittingParty: TaxDistributionRuleRemittingParty!
+}
+
+"""The remitting party for the tax item."""
+enum TaxDistributionRuleRemittingParty {
+    EXPEDIA
+    SUPPLIER
+}
+
 type TaxRecord {
     """List of attributes for the tax record"""
     attributes: [RegulatoryAttribute!]!
@@ -5199,6 +5749,12 @@ type TaxRecord {
     """Category for the tax record."""
     categoryCode: String!
     validationResult: RegulatoryPurposeValidationResult!
+}
+
+"""Detailed Tax rules for the reservation."""
+type TaxRule {
+    """The details of the tax rule when this is a tax rule defined by EG."""
+    expediaTaxRule: ExpediaTaxRule
 }
 
 type TestNotificationError {
@@ -5315,10 +5871,23 @@ type Unit {
 
     """Represents container to group all available unit spaces."""
     spaces: UnitSpaces
+
+    """The unit's status in the Expedia Group system."""
+    status: UnitStatus!
 }
 
 type UnitAgeCategory {
-    ageCategory: String!
+    category: String!
+    minAge: Int!
+}
+
+input UnitAgeCategoryInput {
+    """Defines which category of age is being defined."""
+    category: String!
+
+    """
+    Defines what is the minimum age for a person to belong in the given age category.
+    """
     minAge: Int!
 }
 
@@ -5334,6 +5903,18 @@ type UnitNameAccessibility {
     includeAccessibility: Boolean!
 }
 
+input UnitNameAccessibilityInput {
+    """
+    Attribute that adds the type of accessibility to be included in the name as specified, and will override includeAccessibility if present.
+    """
+    accessibilityTypeOverride: String
+
+    """
+    Attribute that determines whether or not to include Accessible in the unit name.
+    """
+    includeAccessibility: Boolean
+}
+
 type UnitNameAttributes {
     """Attribute that determines if unit has accessibility."""
     accessibility: UnitNameAccessibility!
@@ -5344,7 +5925,7 @@ type UnitNameAttributes {
     bedroomDetails: String!
 
     """
-    Attribute to add a custom label to the unit name, always used in the name if provided.
+    Attribute to add a custom label as suffix to the unit name, always used in the name if provided.
     """
     customLabel: String!
 
@@ -5486,6 +6067,16 @@ type UnitSpaces {
     offices: [Office!]
 }
 
+enum UnitState {
+    ACTIVE
+    INACTIVE
+}
+
+type UnitStatus {
+    """The unit's status in the Expedia Group system."""
+    state: UnitState!
+}
+
 input UnsubscribeNotificationEventTypeInput {
     """Event type name to unsubscribe from"""
     eventType: String!
@@ -5502,6 +6093,11 @@ input UpdateAddressInput {
     countryCode: CountryCode
     locality: String
     postalCode: String
+}
+
+input UpdateAgencyModelConfigInput {
+    paymentScheduleApplicable: Boolean
+    supplierCode: String
 }
 
 input UpdateAreaInput {
@@ -5561,6 +6157,11 @@ input UpdateMaxOccupancyPolicyInput {
     adultCount: Int
     note: [LocalizedStringInput!]
     totalGuestCount: Int
+}
+
+input UpdateMerchantModelConfigInput {
+    supplierCode: String
+    taxInclusive: Boolean
 }
 
 input UpdateNotificationCallbackConfigInput {
@@ -5641,33 +6242,20 @@ type UpdatePropertyPayload {
     property: Property
 }
 
-input UpdatePropertyUnitInput {
-    amenities: [AmenityInput!]
-    area: UpdateAreaInput
-    clientMutationId: String
-    propertyId: ID!
-    unitId: ID!
-}
-
-type UpdatePropertyUnitPayload {
-    clientMutationId: String
-    unit: Unit!
-}
-
 input UpdateRatePlanInput {
+    agencyModelConfig: UpdateAgencyModelConfigInput
     baseRateGuestCount: Int
     cancellationPolicyConfigId: ID
     clientMutationId: ID
-    distributionRules: [RatePlanDistributionRuleInput!]
     feeSetId: ID
     id: ID!
+    merchantModelConfig: UpdateMerchantModelConfigInput
     name: String
-    paymentScheduleApplicable: Boolean
     propertyId: ID!
     restrictions: UpdateRatePlanRestrictionsInput
     status: RatePlanStatus
-    taxInclusive: Boolean
     unitId: ID!
+    valueAdds: [String!]
 }
 
 type UpdateRatePlanPayload {
@@ -5704,6 +6292,115 @@ input UpdateStayPolicyInput {
     petsPolicy: UpdatePetsPolicyInput
     rentalAgreementUrl: Url
     smokingPolicy: UpdateSmokingPolicyInput
+}
+
+input UpdateUnitInput {
+    """
+    The different age categories supported by the unit. At the very least, the 'Adult' category must be defined.
+    """
+    ageCategories: [UnitAgeCategoryInput!]
+    amenities: [AmenityInput!]
+
+    """Used to define unit size."""
+    area: UpdateAreaInput
+    bedGroups: [BedGroupInput!]
+    clientMutationId: String
+
+    """
+    Defines the extra bed combination (type, size and quality) the unit may have.
+    """
+    extraBeds: [ExtraBedTypeInput!]
+
+    """
+    Defines the maximum occupancy of the unit in total and by age category.
+    """
+    maxOccupancy: UpdateUnitOccupancyInput
+
+    """
+    Name object. Collection of elements/attributes related to the name of a unit.
+    """
+    nameConfig: UpdateUnitNameConfigInput
+    propertyId: ID
+
+    """
+    Used to define whether the unit is smoking, nonsmoking, or if both options are available on request.
+    """
+    smokingPolicy: UnitSmokingPolicy
+    supplierUnitId: String
+
+    """Unit ID assigned by Expedia Group."""
+    unitId: ID!
+}
+
+input UpdateUnitNameAttributesInput {
+    """Attribute that determines if unit has accessibility."""
+    accessibility: UnitNameAccessibilityInput
+
+    """
+    Attribute that describes the details of the bedroom used to compose the name of the unit.
+    """
+    bedroomDetails: String
+
+    """
+    Attribute to add a custom label as suffix to the unit name, always used in the name if provided.
+    """
+    customLabel: String
+
+    """Attribute used to highlight a feature of the unit on its name."""
+    featuredAmenity: String
+
+    """
+    Attribute that determines whether or not to include bed type on the unit name.
+    """
+    includeBedType: Boolean
+
+    """
+    Attribute that determines if the unit's smoking preferences should be used to compose the name of the unit.
+    """
+    includeSmokingPolicy: Boolean
+
+    """Attribute used to highlight the location of the unit."""
+    location: String
+
+    """
+    Attribute that describes the class of unit, which is used to compose the name, e.g Basic, Standard etc..
+    """
+    unitClass: String
+
+    """
+    Attribute that determines the type of unit, which is used to compose the name, e.g Room, Apartment, Cabin etc.
+    """
+    unitType: String
+
+    """
+    Attribute that gives additional information about the view of the unit.
+    """
+    view: String
+}
+
+input UpdateUnitNameConfigInput {
+    """Collection of attributes that can be used to build a unit name."""
+    attributes: UpdateUnitNameAttributesInput
+}
+
+input UpdateUnitOccupancyInput {
+    """
+    Maximum number of adults that can reside in the unit, must be at least 1 and less than or equal to the total.
+    """
+    adults: Int
+
+    """
+    Maximum number of children that can reside in the unit, must be less than the total.
+    """
+    children: Int
+
+    """Total count of people that can reside in the unit, must be at least 1."""
+    total: Int
+}
+
+type UpdateUnitPayload {
+    clientMutationId: String
+    unit: Unit!
 }
 
 """Government registration information for a given property"""
@@ -5817,6 +6514,25 @@ Represents a Uniform Resource Locator (URL), as defined by RFC 3986, serialized 
 """
 scalar Url
 
+"""
+Provides a view of the various amounts of the reservation (supplier rental and other fees, marketplace fees, tax distribution, damage protection)
+and changes to these amounts over the life of the reservation.
+"""
+type VrboAmounts {
+    """
+    Provides a view on the current balance/running totals of the various amounts of the reservation (supplier rental and other fees, marketplace fees and tax distributions).
+    """
+    currentAmounts: ReservationVrboCurrentAmounts!
+
+    """
+    Provides details about the damage protection attached to the reservation and any claims made against it.
+    """
+    damageProtection: ReservationVrboDamageProtection
+
+    """List of payment-related transactions associated with the reservation."""
+    transactions: [ReservationVrboAmountTransaction!]!
+}
+
 """Cancel Policy Override for vrbo cancellation"""
 input VrboCancellationPolicyOverride {
     overrideType: VrboCancellationPolicyOverrideType!
@@ -5832,7 +6548,9 @@ input VrboCancellationPolicyPenalty {
     """The penalty type for the cancellation"""
     type: VrboCancellationPolicyPenaltyType!
 
-    """The percentage of the penalty for the cancellation"""
+    """
+    The percentage of the penalty for the cancellation. Value must be between 0 and 1
+    """
     percent: Float
 }
 
@@ -5986,26 +6704,6 @@ enum VrboOnboardingIdMappingStatus {
 
     """Expedia is validating mappings for Property and Reservation IDs."""
     VALIDATION_IN_PROGRESS
-}
-
-"""VRBO reservation amount details"""
-type VrboReservationAmount {
-    """amount value for reservation"""
-    amount: Money!
-
-    """product code for reservation amount"""
-    productCode: String
-
-    """
-    Amount type (RENT, PARTNER_FEE, TRAVELER_SERVICE_FEE, PROPERTY_DAMAGE_PROTECTION, VRBO_REMITTED_LODGING_TAX, ...)
-    """
-    type: String!
-}
-
-"""Amounts for VRBO reservation"""
-type VrboReservationAmounts {
-    """Summary list of the reservation amounts"""
-    summary: [VrboReservationAmount!]!
 }
 
 """A mapping of an EG Property ID to a current Supplier Property ID."""
