@@ -1,10 +1,6 @@
 fragment ReservationData on Reservation {
         accessibilityText
         adultCount
-        alternativeIds {
-            referenceNumber
-            supplierId
-        }
         amounts {
             nightlyPayments {
                 cancellationAmounts {
