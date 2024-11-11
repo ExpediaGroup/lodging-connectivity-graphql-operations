@@ -1,0 +1,12 @@
+query PropertyReservationsTotalCount(
+    $propertyId: String!,
+    $idSource: IdSource = EXPEDIA,
+    $pageSize: Int! = 10,
+    $cursor: String,
+) {
+    property(id: $propertyId, idSource: $idSource) {
+        reservations(pageSize: $pageSize, after: $cursor) {
+            totalCount
+        }
+    }
+}

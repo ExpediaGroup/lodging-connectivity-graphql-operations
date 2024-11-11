@@ -1,0 +1,7 @@
+query SandboxPropertyReservationsTotalCount($propertyId: ID!) {
+    property(id: $propertyId) {
+        reservations {
+            totalCount
+        }
+    }
+}
